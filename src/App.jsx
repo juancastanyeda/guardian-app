@@ -122,6 +122,7 @@ function detectarRemitenteSospechoso(remitente) {
 
 function detectarUrgencia(asunto, cuerpo) {
   const keywords = [
+    // ── Español ──
     'urgente', 'urgentemente', 'inmediatamente', 'ahora mismo', 'de inmediato',
     'expira', 'expirara', 'caduca', 'caducara', 'ultima oportunidad',
     'actue ya', 'actue ahora', 'importante', 'accion requerida',
@@ -129,13 +130,23 @@ function detectarUrgencia(asunto, cuerpo) {
     'tiempo limitado', '24 horas', '48 horas', 'horas para', 'ultimo aviso',
     'su cuenta sera', 'su acceso sera bloqueado', 'suspendida', 'eliminada',
     'bloqueada', 'verificacion inmediata', 'responder de inmediato',
-    // Amenaza judicial / legal
-    'proceso penal', 'proceso civil', 'demanda', 'citacion', 'comparecer',
-    'juicio', 'embargo', 'mandamiento de pago', 'primera instancia',
+    'amenaza judicial', 'proceso penal', 'proceso civil', 'demanda', 'citacion',
+    'comparecer', 'juicio', 'embargo', 'mandamiento de pago', 'primera instancia',
     'segunda instancia', 'emplazamiento', 'requerimiento judicial',
     'orden judicial', 'proceso de demanda', 'notificacion judicial',
     'sera detenido', 'arresto', 'multa', 'sancion', 'penalidad',
     'proceso disciplinario', 'investigacion penal', 'accion legal',
+    // ── English ──
+    'urgent', 'urgently', 'immediately', 'right now', 'asap', 'as soon as possible',
+    'expires', 'expiring', 'expiration', 'last chance', 'act now', 'act immediately',
+    'action required', 'immediate action required', 'respond today', 'due today',
+    'time sensitive', 'time-sensitive', 'limited time', 'final notice', 'final warning',
+    'your account will be', 'account suspended', 'account blocked', 'account terminated',
+    'account will be closed', 'account has been compromised', 'verify immediately',
+    'confirm immediately', 'legal action', 'criminal charges', 'lawsuit', 'court order',
+    'subpoena', 'arrest warrant', 'penalty', 'fine imposed', 'legal proceedings',
+    'debt collection', 'failure to respond', 'will result in', 'within 24 hours',
+    'within 48 hours', 'you must', 'you are required', 'mandatory',
   ]
   const found = containsAny(`${asunto} ${cuerpo}`, keywords)
   if (found.length === 0) return null
@@ -152,8 +163,8 @@ function detectarUrgencia(asunto, cuerpo) {
 
 function detectarCredenciales(cuerpo) {
   const keywords = [
-    'contrasena', 'password', 'passwd', 'clave de acceso',
-    'nombre de usuario', 'numero de cuenta',
+    // ── Español ──
+    'contrasena', 'clave de acceso', 'nombre de usuario', 'numero de cuenta',
     'verificar', 'verifique', 'verificacion', 'confirmar datos',
     'confirme sus datos', 'actualizar datos', 'datos bancarios',
     'tarjeta de credito', 'tarjeta de debito', 'numero de tarjeta',
@@ -161,6 +172,15 @@ function detectarCredenciales(cuerpo) {
     'inicie sesion', 'iniciar sesion', 'haga clic aqui para confirmar',
     'ingrese sus datos', 'proporcione sus datos', 'informacion personal',
     'autenticacion', 'credenciales',
+    // ── English ──
+    'password', 'passwd', 'username', 'user name', 'account number',
+    'social security number', 'date of birth', 'credit card number',
+    'bank account', 'routing number', 'billing information', 'billing info',
+    'sign in', 'log in', 'login', 'click here to verify', 'verify your account',
+    'confirm your account', 'update your information', 'personal information',
+    'identity verification', 'two-factor authentication', '2fa code',
+    'verification code', 'one-time password', 'enter your password',
+    'reset your password', 'account credentials', 'security code',
   ]
   const found = containsAny(cuerpo, keywords)
 
@@ -169,6 +189,7 @@ function detectarCredenciales(cuerpo) {
   const claveAccesoMatch = /clave\s*(?:de\s*)?acceso\s*[:=]\s*\S+/i.test(cuerpo)
                         || /contrase[ñn]a\s*[:=]\s*\S+/i.test(cuerpo)
                         || /password\s*[:=]\s*\S+/i.test(cuerpo)
+                        || /access\s*(?:key|code|password)\s*[:=]\s*\S+/i.test(cuerpo)
 
   if (claveAccesoMatch) {
     return {
@@ -251,7 +272,7 @@ function detectarAdjuntoInesperado(cuerpo, tieneAdjunto) {
   // ── Patrón crítico: descarga de "proceso" judicial falso ──────────────────
   // Los organismos judiciales colombianos reales NUNCA envían citaciones
   // con enlaces de descarga por correo electrónico.
-  const descargaProcesoRegex = /descargar?\s+(?:el\s+)?proceso|descargue\s+(?:el\s+)?proceso|descargar?\s+(?:la\s+)?citaci[oó]n|abrir?\s+(?:el\s+)?proceso|ver\s+(?:el\s+)?proceso/i
+  const descargaProcesoRegex = /descargar?\s+(?:el\s+)?proceso|descargue\s+(?:el\s+)?proceso|descargar?\s+(?:la\s+)?citaci[oó]n|abrir?\s+(?:el\s+)?proceso|ver\s+(?:el\s+)?proceso|download\s+(?:the\s+)?(?:process|legal\s+document|case\s+file|court\s+document|lawsuit\s+file)/i
   if (descargaProcesoRegex.test(cuerpo)) {
     return {
       id: 'adjunto_inesperado',
@@ -264,11 +285,19 @@ function detectarAdjuntoInesperado(cuerpo, tieneAdjunto) {
   }
 
   const keywords = [
-    'adjunto', 'attachment', 'archivo adjunto', 'ver adjunto', 'abrir adjunto',
+    // ── Español ──
+    'adjunto', 'archivo adjunto', 'ver adjunto', 'abrir adjunto',
     'descarga', 'descargar', 'abra el archivo', 'revisar documento',
     'documento adjunto', 'factura adjunta', 'comprobante adjunto',
     'descargar documento', 'descargar soporte', 'abrir citacion',
     'descargar notificacion', 'ver notificacion', 'descargue el documento',
+    // ── English ──
+    'attachment', 'see attached', 'open attachment', 'attached file',
+    'download', 'click to download', 'open the file', 'review the document',
+    'attached document', 'attached invoice', 'attached receipt', 'attached report',
+    'download file', 'download document', 'open the document', 'view attachment',
+    'please find attached', 'find the attached', 'enclosed document',
+    // ── Extensiones maliciosas ──
     '.exe', '.zip', '.docm', '.xlsm', '.vbs', '.bat',
     '.cmd', '.rar', '.7z', '.iso', '.apk', '.scr', '.pif', '.hta',
   ]
@@ -294,16 +323,22 @@ function detectarAdjuntoInesperado(cuerpo, tieneAdjunto) {
 
 function detectarSaludoGenerico(cuerpo) {
   const patterns = [
+    // ── Español ──
     'estimado cliente', 'apreciado cliente', 'estimado usuario', 'apreciado usuario',
-    'dear customer', 'dear user', 'dear valued', 'a quien corresponda',
-    'a quien pueda interesar', 'estimado/a', 'estimado(a)',
+    'a quien corresponda', 'a quien pueda interesar', 'estimado/a', 'estimado(a)',
     'hola usuario', 'buen dia usuario', 'a nuestros clientes',
     'estimado miembro', 'apreciado miembro',
-    // Patrones judiciales/oficiales impersonales
     'a su prospecto', 'al ciudadano', 'al contribuyente', 'al interesado',
     'al demandado', 'al imputado', 'al notificado', 'al destinatario',
     'estimado ciudadano', 'apreciado ciudadano', 'estimado contribuyente',
     'se comunica al', 'se le informa al', 'se notifica al',
+    // ── English ──
+    'dear customer', 'dear user', 'dear valued customer', 'dear valued member',
+    'dear account holder', 'dear member', 'dear subscriber', 'dear client',
+    'dear sir', 'dear madam', 'dear sir or madam', 'dear sir/madam',
+    'hello user', 'hello there', 'greetings', 'to whom it may concern',
+    'to our customers', 'to our valued customers', 'to all employees',
+    'dear friend', 'dear beneficiary', 'dear winner', 'dear applicant',
   ]
   const start = norm(cuerpo.slice(0, 250))
   const match = patterns.find(p => start.includes(norm(p)))
@@ -350,6 +385,17 @@ function detectarErroresRedaccion(cuerpo) {
   if (/haga\s+click/i.test(cuerpo)) errors.push('"haga click" (debería ser "clic")')
   if (/[a-z][0-9][a-z]/i.test(cuerpo)) errors.push('sustitución de letras por números')
   if (/\s{3,}/.test(cuerpo)) errors.push('espacios irregulares')
+  // ── Patrones de redacción típicos en phishing en inglés ──
+  if (/\bkindly\s+(?:revert|respond|confirm|verify|update|provide|send|click)\b/i.test(cuerpo))
+    errors.push('"kindly + acción" (indicador frecuente de phishing en inglés)')
+  if (/\bdo\s+the\s+needful\b/i.test(cuerpo))
+    errors.push('"do the needful" (expresión característica de phishing masivo)')
+  if (/\bplease\s+be\s+(?:advised|informed|noted)\b/i.test(cuerpo))
+    errors.push('"please be advised/informed" (formalidad artificial)')
+  if (/\byour\s+(?:account|password|details?)\s+(?:has|have)\s+been\s+(?:compromised|hacked|accessed|stolen)\b/i.test(cuerpo))
+    errors.push('afirmación de compromiso de cuenta sin evidencia')
+  if (/\bwe\s+(?:noticed|detected|observed)\s+(?:unusual|suspicious|unauthorized)\b/i.test(cuerpo))
+    errors.push('"we noticed unusual activity" (gancho clásico de phishing en inglés)')
 
   // Palabras judiciales con tilde faltante frecuentes en phishing
   const judicialAccents = [
@@ -405,17 +451,33 @@ function detectarSuplantacion(remitente, asunto, cuerpo) {
     'constitucion', 'codigo penal', 'codigo civil', 'ley 100',
   ]
   const execRoles = [
+    // ── Español ──
     'ceo', 'director general', 'director ejecutivo', 'gerente general',
     'vicepresidente', 'presidente', 'jefe de', 'responsable de',
     'director de finanzas', 'director de rrhh', 'recursos humanos',
     'departamento de it', 'soporte tecnico', 'equipo de seguridad',
     'administrador del sistema', 'helpdesk', 'mesa de ayuda',
+    // ── English ──
+    'chief executive officer', 'chief financial officer', 'cfo', 'cto',
+    'chief technology officer', 'chief operating officer', 'coo',
+    'it support', 'technical support', 'security team', 'security department',
+    'help desk', 'system administrator', 'sysadmin', 'it department',
+    'hr department', 'human resources department', 'finance department',
+    'accounting department', 'payroll department', 'compliance team',
   ]
   const execActions = [
+    // ── Español ──
     'transferencia urgente', 'transferir fondos', 'pago urgente',
     'necesito que realices', 'te pido que', 'estoy en reunion',
     'no puedo hablar ahora', 'realiza el pago', 'haz una transferencia',
     'deposita', 'envia dinero', 'compra tarjetas', 'gift card',
+    // ── English ──
+    'wire transfer', 'transfer funds', 'urgent payment', 'i need you to',
+    'need you to', 'please transfer', 'purchase gift cards', 'buy gift cards',
+    'make a payment', 'send money', 'deposit funds', 'in a meeting',
+    'cant talk right now', 'process this payment', 'handle this for me',
+    'keep this confidential', 'do not share this', 'time sensitive matter',
+    'process the transfer', 'execute the payment',
   ]
 
   const allText = norm(`${remitente} ${asunto} ${cuerpo}`)
@@ -458,12 +520,16 @@ const BRAND_MAP = {
   haceb:      ['haceb', 'haceb.com'],
   judicial:   ['juzgado', 'tribunal', 'fiscalia', 'judicatura', 'rama judicial',
                'corte suprema', 'juez', 'primera instancia', 'proceso penal',
-               'proceso civil', 'citacion judicial', 'mandamiento de pago'],
+               'proceso civil', 'citacion judicial', 'mandamiento de pago',
+               'court order', 'subpoena', 'lawsuit', 'legal notice', 'case number',
+               'court hearing', 'district court', 'federal court', 'legal action'],
   gobierno:   ['ministerio', 'dian', 'ugpp', 'colpensiones', 'alcaldia',
                'gobernacion', 'supersociedades', 'procuraduria', 'contraloria',
-               'notaria', 'policia nacional', 'registraduria'],
+               'notaria', 'policia nacional', 'registraduria',
+               'irs', 'internal revenue', 'social security administration',
+               'department of', 'bureau of', 'federal agency', 'government notice'],
   planillas:  ['planillas', 'nomina', 'liquidacion de nomina', 'pago de nomina',
-               'colilla de pago', 'desprendible'],
+               'colilla de pago', 'desprendible', 'payroll', 'pay stub', 'salary slip'],
 }
 
 function detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo) {
@@ -528,10 +594,22 @@ function detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo) {
   const isDirec    = deptDirec.some(d => displayNorm.includes(d))
 
   // Body topic keywords
-  const hasCredRequest   = ['contrasena','password','verificar cuenta','datos de acceso','inicie sesion'].some(t => bodyFull.includes(t))
-  const hasFinancialReq  = ['transferencia','deposito','pago urgente','fondos','wire transfer','gift card'].some(t => bodyFull.includes(t))
-  const hasPersonalData  = ['numero de tarjeta','cvv','datos bancarios','cuenta bancaria','numero de cuenta'].some(t => bodyFull.includes(t))
-  const hasGenericOpener = ['estimado cliente','apreciado usuario','dear customer','dear user'].some(p => greetingText.includes(p))
+  const hasCredRequest   = [
+    'contrasena','password','verificar cuenta','datos de acceso','inicie sesion',
+    'log in','sign in','reset password','verify account','account credentials','enter your password',
+  ].some(t => bodyFull.includes(t))
+  const hasFinancialReq  = [
+    'transferencia','deposito','pago urgente','fondos','wire transfer','gift card',
+    'bank transfer','urgent payment','purchase gift','send funds','transfer money',
+  ].some(t => bodyFull.includes(t))
+  const hasPersonalData  = [
+    'numero de tarjeta','cvv','datos bancarios','cuenta bancaria','numero de cuenta',
+    'credit card','card number','bank account','routing number','social security',
+  ].some(t => bodyFull.includes(t))
+  const hasGenericOpener = [
+    'estimado cliente','apreciado usuario','dear customer','dear user',
+    'dear account holder','dear valued customer','dear member','to whom it may concern',
+  ].some(p => greetingText.includes(p))
 
   // Detect if display name looks like a real person (2 words, no corporate terms)
   const corpWords = ['soporte','support','equipo','team','noreply','no-reply','admin','info','notificacion',
@@ -794,8 +872,8 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
   // "DESCARGAR PROCESO" y "CLAVE ACCESO:" son indicadores definitivos de fraude.
   // Sin importar qué otros detectores disparen (ni la bonificación), el score
   // mínimo es CRÍTICO (76).
-  const tieneDescargaProceso = /descargar?\s+(?:el\s+)?proceso|descargue\s+(?:el\s+)?proceso/i.test(cuerpo)
-  const tieneClaveAcceso     = /clave\s*(?:de\s*)?acceso\s*[:=]/i.test(cuerpo)
+  const tieneDescargaProceso = /descargar?\s+(?:el\s+)?proceso|descargue\s+(?:el\s+)?proceso|download\s+(?:the\s+)?(?:process|legal\s+document|case\s+file|court\s+document)/i.test(cuerpo)
+  const tieneClaveAcceso     = /clave\s*(?:de\s*)?acceso\s*[:=]|access\s*(?:key|code)\s*[:=]/i.test(cuerpo)
   if (tieneDescargaProceso || tieneClaveAcceso) {
     rawScore = Math.max(rawScore, 76)
   }
