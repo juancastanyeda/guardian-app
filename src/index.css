@@ -1,0 +1,87 @@
+/* ─── CSS Variables ────────────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --color-accent:         #14b8a6;
+  --color-accent-dim:     #0d9488;
+  --color-accent-glow:    rgba(20, 184, 166, 0.18);
+
+  /* Backgrounds */
+  --color-bg:             #080d16;
+  --color-surface:        #0f1623;
+  --color-surface-2:      #172032;
+  --color-surface-3:      #1e2a3e;
+  --color-border:         #1e3354;
+  --color-border-focus:   #14b8a6;
+
+  /* Text */
+  --color-text-primary:   #f0f4f8;
+  --color-text-secondary: #8fa3bf;
+  --color-text-muted:     #4a6080;
+
+  /* Risk levels */
+  --color-seguro:         #22c55e;
+  --color-precaucion:     #f59e0b;
+  --color-alto-riesgo:    #f97316;
+  --color-critico:        #ef4444;
+
+  /* Signal severity */
+  --color-sev-baja:       #3b82f6;
+  --color-sev-media:      #f59e0b;
+  --color-sev-alta:       #ef4444;
+
+  /* Typography */
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Spacing */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-10: 2.5rem;
+
+  /* Radii */
+  --r-sm:   6px;
+  --r-md:   12px;
+  --r-lg:   18px;
+  --r-full: 9999px;
+
+  /* Shadows */
+  --shadow-panel: 0 4px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow:  0 0 24px rgba(20, 184, 166, 0.22);
+}
+
+/* ─── Global Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
