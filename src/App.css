@@ -1035,6 +1035,156 @@ textarea {
   50%       { opacity: 1;   }
 }
 
+/* ─── VirusTotal URL Section ─────────────────────────────────────────── */
+
+.vt-field-group label .label-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.vt-section {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-5);
+}
+
+.vt-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  padding: var(--sp-2) 0;
+}
+
+.vt-error {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--color-critico);
+  font-size: 0.9rem;
+  padding: var(--sp-2) 0;
+}
+
+.vt-error .material-icons {
+  font-size: 1.1rem;
+}
+
+.vt-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.vt-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.vt-ratio {
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.vt-ratio-num {
+  font-size: 2.2rem;
+}
+
+.vt-ratio-sep {
+  font-size: 1.4rem;
+  opacity: 0.6;
+}
+
+.vt-ratio-total {
+  font-size: 1.4rem;
+  opacity: 0.6;
+}
+
+.vt-summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  flex: 1;
+}
+
+.vt-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  width: fit-content;
+}
+
+.vt-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.vt-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.vt-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: none;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--r-md);
+  padding: 6px 12px;
+  transition: background 0.18s, color 0.18s;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.vt-link-btn:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.vt-link-btn .material-icons {
+  font-size: 0.95rem;
+}
+
+.vt-engines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.vt-engine-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.vt-engine-malicious {
+  color: var(--color-critico);
+  border-color: var(--color-critico);
+  background: color-mix(in srgb, var(--color-critico) 12%, transparent);
+}
+
+.vt-engine-suspicious {
+  color: var(--color-precaucion);
+  border-color: var(--color-precaucion);
+  background: color-mix(in srgb, var(--color-precaucion) 12%, transparent);
+}
+
 @media (max-width: 480px) {
   .panel {
     padding: var(--sp-5);
@@ -1042,5 +1192,14 @@ textarea {
 
   .app-header {
     padding: 0 var(--sp-4);
+  }
+
+  .vt-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .vt-link-btn {
+    margin-left: 0;
   }
 }

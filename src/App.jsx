@@ -1085,6 +1085,73 @@ function GaugeSVG({ puntuacion, color, animate }) {
   )
 }
 
+// ─── VirusTotal URL Analyzer ─────────────────────────────────────────────────
+
+const VT_API_KEY = '439792ab6453964b91dbe99f5cf4dff12ab412183cb2a8d6cc8dc30f484d0d18'
+
+async function analizarURL(url) {
+  try {
+    // 1. Intentar obtener reporte existente usando el ID de la URL (base64 url-safe)
+    const urlId = btoa(url).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+    const reportRes = await fetch(`https://www.virustotal.com/api/v3/urls/${urlId}`, {
+      headers: { 'x-apikey': VT_API_KEY },
+    })
+
+    if (reportRes.ok) {
+      const data = await reportRes.json()
+      const attrs = data.data?.attributes
+      if (attrs?.last_analysis_stats) {
+        const engines = Object.entries(attrs.last_analysis_results || {})
+          .filter(([, v]) => v.category === 'malicious' || v.category === 'suspicious')
+          .map(([name, v]) => ({ name, category: v.category, result: v.result }))
+          .slice(0, 8)
+        return {
+          stats: attrs.last_analysis_stats,
+          engines,
+          url: attrs.url || url,
+          scanDate: attrs.last_analysis_date
+            ? new Date(attrs.last_analysis_date * 1000).toLocaleDateString('es-CO')
+            : null,
+          vtLink: `https://www.virustotal.com/gui/url/${urlId}`,
+        }
+      }
+    }
+
+    // 2. Enviar URL para análisis nuevo
+    const submitRes = await fetch('https://www.virustotal.com/api/v3/urls', {
+      method: 'POST',
+      headers: {
+        'x-apikey': VT_API_KEY,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `url=${encodeURIComponent(url)}`,
+    })
+    if (!submitRes.ok) throw new Error(`Error al enviar URL (${submitRes.status})`)
+    const submitData = await submitRes.json()
+    const analysisId = submitData.data.id
+
+    // 3. Esperar resultado (hasta 20 segundos)
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 2000))
+      const res = await fetch(`https://www.virustotal.com/api/v3/analyses/${analysisId}`, {
+        headers: { 'x-apikey': VT_API_KEY },
+      })
+      const data = await res.json()
+      if (data.data?.attributes?.status === 'completed') {
+        const stats = data.data.attributes.stats
+        const engines = Object.entries(data.data.attributes.results || {})
+          .filter(([, v]) => v.category === 'malicious' || v.category === 'suspicious')
+          .map(([name, v]) => ({ name, category: v.category, result: v.result }))
+          .slice(0, 8)
+        return { stats, engines, url, vtLink: `https://www.virustotal.com/gui/url/${urlId}` }
+      }
+    }
+    throw new Error('El análisis tardó demasiado. Intente de nuevo.')
+  } catch (err) {
+    return { error: err.message }
+  }
+}
+
 // ─── App ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -1092,6 +1159,9 @@ export default function App() {
   const [asunto, setAsunto] = useState('')
   const [cuerpo, setCuerpo] = useState('')
   const [tieneAdjunto, setTieneAdjunto] = useState(false)
+  const [urlSospechosa, setUrlSospechosa] = useState('')
+  const [urlResultado, setUrlResultado] = useState(null)
+  const [urlAnalizando, setUrlAnalizando] = useState(false)
   const [resultado, setResultado] = useState(null)
   const [analizando, setAnalizando] = useState(false)
   const [animarGauge, setAnimarGauge] = useState(false)
@@ -1113,6 +1183,9 @@ export default function App() {
     setAsunto('')
     setCuerpo('')
     setTieneAdjunto(false)
+    setUrlSospechosa('')
+    setUrlResultado(null)
+    setUrlAnalizando(false)
     setFormError('')
     setResultado(null)
     setAnimarGauge(false)
@@ -1128,6 +1201,16 @@ export default function App() {
     setAnalizando(true)
     setResultado(null)
     setAnimarGauge(false)
+    setUrlResultado(null)
+
+    // Análisis de URL con VirusTotal (corre en paralelo si hay URL)
+    if (urlSospechosa.trim()) {
+      setUrlAnalizando(true)
+      analizarURL(urlSospechosa.trim()).then(res => {
+        setUrlResultado(res)
+        setUrlAnalizando(false)
+      })
+    }
 
     setTimeout(() => {
       const res = analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto })
@@ -1227,6 +1310,25 @@ export default function App() {
               <span>Este correo tiene archivos adjuntos</span>
             </label>
 
+            {/* ── Campo URL VirusTotal ── */}
+            <div className="field-group vt-field-group">
+              <label htmlFor="url-sospechosa">
+                URL sospechosa
+                <span className="label-hint"> (análisis VirusTotal — opcional)</span>
+              </label>
+              <div className="input-icon-wrap">
+                <span className="material-icons input-icon">link</span>
+                <input
+                  id="url-sospechosa"
+                  type="text"
+                  placeholder="https://ejemplo.com/pagina-sospechosa"
+                  value={urlSospechosa}
+                  onChange={e => setUrlSospechosa(e.target.value)}
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+
             {formError && (
               <p className="form-error">
                 <span className="material-icons">error_outline</span>
@@ -1307,6 +1409,75 @@ export default function App() {
                 </div>
                 <DobermanMascot className="dober-result" nivel={resultado.nivel} />
               </div>
+
+              {/* ── VirusTotal URL Result ── */}
+              {(urlAnalizando || urlResultado) && (
+                <div className="vt-section">
+                  <h3 className="section-title">
+                    <span className="material-icons">manage_search</span>
+                    Análisis de URL · VirusTotal
+                  </h3>
+
+                  {urlAnalizando && (
+                    <div className="vt-loading">
+                      <span className="analyzing-ring" style={{ width: 22, height: 22, borderWidth: 2 }} />
+                      <span>Consultando VirusTotal…</span>
+                    </div>
+                  )}
+
+                  {urlResultado && !urlAnalizando && (() => {
+                    if (urlResultado.error) return (
+                      <div className="vt-error">
+                        <span className="material-icons">wifi_off</span>
+                        {urlResultado.error}
+                      </div>
+                    )
+                    const { stats, engines, vtLink, scanDate } = urlResultado
+                    const total   = Object.values(stats).reduce((a, b) => a + b, 0)
+                    const mal     = stats.malicious  || 0
+                    const sus     = stats.suspicious || 0
+                    const flagged = mal + sus
+                    const vtNivel = mal >= 3 ? 'maliciosa' : mal >= 1 || sus >= 2 ? 'sospechosa' : 'limpia'
+                    const vtColor = vtNivel === 'maliciosa' ? 'var(--color-critico)'
+                                  : vtNivel === 'sospechosa' ? 'var(--color-precaucion)'
+                                  : 'var(--color-seguro)'
+                    return (
+                      <div className="vt-result">
+                        <div className="vt-summary">
+                          <div className="vt-ratio" style={{ color: vtColor }}>
+                            <span className="vt-ratio-num">{flagged}</span>
+                            <span className="vt-ratio-sep"> / </span>
+                            <span className="vt-ratio-total">{total}</span>
+                          </div>
+                          <div className="vt-summary-text">
+                            <span className="vt-badge" style={{ color: vtColor, borderColor: vtColor + '55', background: vtColor + '18' }}>
+                              {vtNivel === 'maliciosa' ? '🔴 MALICIOSA' : vtNivel === 'sospechosa' ? '🟡 SOSPECHOSA' : '🟢 LIMPIA'}
+                            </span>
+                            <span className="vt-sub">motores la detectaron como {vtNivel}</span>
+                            {scanDate && <span className="vt-date">Último escaneo: {scanDate}</span>}
+                          </div>
+                          {vtLink && (
+                            <a href={vtLink} target="_blank" rel="noreferrer" className="vt-link-btn">
+                              <span className="material-icons">open_in_new</span>
+                              Ver en VirusTotal
+                            </a>
+                          )}
+                        </div>
+
+                        {engines.length > 0 && (
+                          <div className="vt-engines">
+                            {engines.map(e => (
+                              <span key={e.name} className={`vt-engine-tag vt-engine-${e.category}`}>
+                                {e.name}: {e.result}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
 
               {/* Signals */}
               <div className="signals-section">
