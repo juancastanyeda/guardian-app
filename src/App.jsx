@@ -1107,7 +1107,6 @@ export default function App() {
   const [remitente, setRemitente] = useState('')
   const [asunto, setAsunto] = useState('')
   const [cuerpo, setCuerpo] = useState('')
-  const [tieneAdjunto, setTieneAdjunto] = useState(false)
   const [urlSospechosa, setUrlSospechosa] = useState('')
   const [urlResultado, setUrlResultado] = useState(null)
   const [urlAnalizando, setUrlAnalizando] = useState(false)
@@ -1121,7 +1120,6 @@ export default function App() {
     setRemitente(EJEMPLO.remitente)
     setAsunto(EJEMPLO.asunto)
     setCuerpo(EJEMPLO.cuerpo)
-    setTieneAdjunto(EJEMPLO.tieneAdjunto)
     setFormError('')
     setResultado(null)
     setAnimarGauge(false)
@@ -1131,7 +1129,6 @@ export default function App() {
     setRemitente('')
     setAsunto('')
     setCuerpo('')
-    setTieneAdjunto(false)
     setUrlSospechosa('')
     setUrlResultado(null)
     setUrlAnalizando(false)
@@ -1162,7 +1159,7 @@ export default function App() {
     }
 
     setTimeout(() => {
-      const res = analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto })
+      const res = analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto: false })
       setResultado(res)
       setAnalizando(false)
       requestAnimationFrame(() => {
@@ -1246,18 +1243,6 @@ export default function App() {
                 spellCheck="false"
               />
             </div>
-
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={tieneAdjunto}
-                onChange={e => setTieneAdjunto(e.target.checked)}
-              />
-              <span className="checkbox-box">
-                <span className="material-icons checkbox-check">check</span>
-              </span>
-              <span>Este correo tiene archivos adjuntos</span>
-            </label>
 
             {/* ── Campo URL VirusTotal ── */}
             <div className="field-group vt-field-group">
