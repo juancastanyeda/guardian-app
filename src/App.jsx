@@ -1087,66 +1087,15 @@ function GaugeSVG({ puntuacion, color, animate }) {
 
 // ─── VirusTotal URL Analyzer ─────────────────────────────────────────────────
 
-const VT_API_KEY = '439792ab6453964b91dbe99f5cf4dff12ab412183cb2a8d6cc8dc30f484d0d18'
-
 async function analizarURL(url) {
   try {
-    // 1. Intentar obtener reporte existente usando el ID de la URL (base64 url-safe)
-    const urlId = btoa(url).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-    const reportRes = await fetch(`https://www.virustotal.com/api/v3/urls/${urlId}`, {
-      headers: { 'x-apikey': VT_API_KEY },
-    })
-
-    if (reportRes.ok) {
-      const data = await reportRes.json()
-      const attrs = data.data?.attributes
-      if (attrs?.last_analysis_stats) {
-        const engines = Object.entries(attrs.last_analysis_results || {})
-          .filter(([, v]) => v.category === 'malicious' || v.category === 'suspicious')
-          .map(([name, v]) => ({ name, category: v.category, result: v.result }))
-          .slice(0, 8)
-        return {
-          stats: attrs.last_analysis_stats,
-          engines,
-          url: attrs.url || url,
-          scanDate: attrs.last_analysis_date
-            ? new Date(attrs.last_analysis_date * 1000).toLocaleDateString('es-CO')
-            : null,
-          vtLink: `https://www.virustotal.com/gui/url/${urlId}`,
-        }
-      }
-    }
-
-    // 2. Enviar URL para análisis nuevo
-    const submitRes = await fetch('https://www.virustotal.com/api/v3/urls', {
+    const res = await fetch('/api/vt', {
       method: 'POST',
-      headers: {
-        'x-apikey': VT_API_KEY,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `url=${encodeURIComponent(url)}`,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
     })
-    if (!submitRes.ok) throw new Error(`Error al enviar URL (${submitRes.status})`)
-    const submitData = await submitRes.json()
-    const analysisId = submitData.data.id
-
-    // 3. Esperar resultado (hasta 20 segundos)
-    for (let i = 0; i < 10; i++) {
-      await new Promise(r => setTimeout(r, 2000))
-      const res = await fetch(`https://www.virustotal.com/api/v3/analyses/${analysisId}`, {
-        headers: { 'x-apikey': VT_API_KEY },
-      })
-      const data = await res.json()
-      if (data.data?.attributes?.status === 'completed') {
-        const stats = data.data.attributes.stats
-        const engines = Object.entries(data.data.attributes.results || {})
-          .filter(([, v]) => v.category === 'malicious' || v.category === 'suspicious')
-          .map(([name, v]) => ({ name, category: v.category, result: v.result }))
-          .slice(0, 8)
-        return { stats, engines, url, vtLink: `https://www.virustotal.com/gui/url/${urlId}` }
-      }
-    }
-    throw new Error('El análisis tardó demasiado. Intente de nuevo.')
+    if (!res.ok) throw new Error(`Error del servidor (${res.status})`)
+    return await res.json()
   } catch (err) {
     return { error: err.message }
   }
