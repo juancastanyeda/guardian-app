@@ -856,22 +856,24 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
   }
 
   // ── Coherencia remitente ↔ contenido ────────────────────────────────────
-  // Coincidencia → riesgo mínimo (0) | Sin coincidencia → CRÍTICO (≥76)
+  // Reglas:
+  //  • Sin coincidencia → escalar a CRÍTICO (siempre aplica)
+  //  • Con coincidencia + sin TLD sospechoso + SIN señales → score mínimo (0)
+  //  • Con coincidencia + señales detectadas → las señales mandan, no se cancela
   const coherencia = evaluarCoherenciaRemitente(remitente, asunto, cuerpo)
   if (coherencia) {
-    if (coherencia.hayCoincidencia && !coherencia.esTldSospechoso) {
-      // Remitente coherente con el contenido → riesgo al mínimo
-      rawScore = 0
-    } else if (!coherencia.hayCoincidencia) {
+    if (!coherencia.hayCoincidencia) {
       // Remitente sin relación con el contenido → forzar CRÍTICO
       rawScore = Math.max(rawScore, 76)
+    } else if (coherencia.hayCoincidencia && !coherencia.esTldSospechoso && senalesDetectadas.length === 0) {
+      // Dominio coherente Y ninguna señal de riesgo detectada → correo limpio
+      rawScore = 0
     }
+    // Si hay señales: los detectores ya calcularon el riesgo real — no se toca
   }
 
   // ── Garantía CRÍTICO ──────────────────────────────────────────────────────
   // "DESCARGAR PROCESO" y "CLAVE ACCESO:" son indicadores definitivos de fraude.
-  // Sin importar qué otros detectores disparen (ni la bonificación), el score
-  // mínimo es CRÍTICO (76).
   const tieneDescargaProceso = /descargar?\s+(?:el\s+)?proceso|descargue\s+(?:el\s+)?proceso|download\s+(?:the\s+)?(?:process|legal\s+document|case\s+file|court\s+document)/i.test(cuerpo)
   const tieneClaveAcceso     = /clave\s*(?:de\s*)?acceso\s*[:=]|access\s*(?:key|code)\s*[:=]/i.test(cuerpo)
   if (tieneDescargaProceso || tieneClaveAcceso) {
@@ -880,7 +882,7 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
 
   // ── Sin señales → score mínimo ────────────────────────────────────────────
   // Si ningún detector encontró indicadores Y no hay frases críticas absolutas,
-  // el correo no tiene evidencia de riesgo: el score debe ser bajo (0).
+  // el correo no tiene evidencia de riesgo.
   if (senalesDetectadas.length === 0 && !tieneDescargaProceso && !tieneClaveAcceso) {
     rawScore = 0
   }
