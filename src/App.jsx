@@ -921,38 +921,63 @@ Equipo de Soporte Microsoft`,
 // ─── Mailto Builder ──────────────────────────────────────────────────────────
 
 function generarMailto(resultado, remitente, asunto) {
-  const senalesTexto = resultado.senalesDetectadas
-    .map(s => `  • ${s.nombre} (+${s.peso} pts)`)
-    .join('\n')
+  const nivelEmoji = {
+    'SEGURO':      '🟢',
+    'PRECAUCIÓN':  '🟡',
+    'ALTO RIESGO': '🟠',
+    'CRÍTICO':     '🔴',
+  }[resultado.nivel] || '⚪'
+
+  const senalesTexto = resultado.senalesDetectadas.length > 0
+    ? resultado.senalesDetectadas.map(s => `   • ${s.nombre}`).join('\n')
+    : '   Sin señales detectadas'
+
+  const fecha = new Date().toLocaleString('es-CO', {
+    dateStyle: 'long', timeStyle: 'short',
+  })
 
   const body = [
-    '═══════════════════════════════════════',
-    'REPORTE GUARDIAN — Análisis de Phishing',
-    '═══════════════════════════════════════',
+    '🛡️ REPORTE GUARDIAN — Análisis de Phishing',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
     '',
-    `Fecha del análisis : ${new Date().toLocaleString('es-CO')}`,
-    `Puntuación de riesgo: ${resultado.puntuacion} / 100`,
-    `Nivel de riesgo    : ${resultado.nivel}`,
+    `📅 Fecha del análisis: ${fecha}`,
     '',
-    '─── Datos del correo analizado ────────',
-    `Remitente : ${remitente || '(no ingresado)'}`,
-    `Asunto    : ${asunto || '(no ingresado)'}`,
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '📊 RESULTADO DEL ANÁLISIS',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
     '',
-    `─── Señales detectadas (${resultado.senalesDetectadas.length}/9) ─────`,
-    senalesTexto || '  (ninguna)',
+    `   ${nivelEmoji} Nivel de riesgo:     ${resultado.nivel}`,
+    `   📈 Puntuación:          ${resultado.puntuacion} de 100`,
     '',
-    '─── Acción recomendada ────────────────',
-    resultado.recomendaciones[0],
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '📧 DATOS DEL CORREO ANALIZADO',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
     '',
-    'Por favor adjunte una captura de pantalla del análisis completo.',
-    '═══════════════════════════════════════',
+    `   Remitente: ${remitente || '(no ingresado)'}`,
+    `   Asunto:    ${asunto    || '(no ingresado)'}`,
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    `🚨 SEÑALES DETECTADAS  (${resultado.senalesDetectadas.length} de 9)`,
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '',
+    senalesTexto,
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '✅ ACCIÓN RECOMENDADA',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '',
+    `   ${resultado.recomendaciones[0]}`,
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '📎 Por favor adjunte una captura de pantalla del análisis completo.',
+    '',
+    'Generado automáticamente por Guardian · Ciberseguridad Haceb',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
   ].join('\n')
 
-  const params = new URLSearchParams({
-    subject: `[Guardian] Correo sospechoso — Riesgo ${resultado.nivel} (${resultado.puntuacion}/100)`,
-    body,
-  })
-  return `mailto:ciberseguridad@haceb.com?${params.toString()}`
+  const subject = encodeURIComponent(`[Guardian] Correo sospechoso — Riesgo ${resultado.nivel} (${resultado.puntuacion}/100)`)
+  const bodyEnc = encodeURIComponent(body)
+  return `mailto:ciberseguridad@haceb.com?subject=${subject}&body=${bodyEnc}`
 }
 
 // ─── Doberman Mascot ─────────────────────────────────────────────────────────
