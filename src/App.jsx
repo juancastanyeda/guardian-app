@@ -1151,14 +1151,14 @@ export default function App() {
     const file = e.dataTransfer.files[0]
     if (!file) return
     setArchivo(file)
-    analizarArchivo(file)
+    setArchivoResultado(null)
   }
 
   function handleFileSelect(e) {
     const file = e.target.files[0]
     if (!file) return
     setArchivo(file)
-    analizarArchivo(file)
+    setArchivoResultado(null)
   }
 
   function cargarEjemplo() {
@@ -1197,6 +1197,7 @@ export default function App() {
     setResultado(null)
     setAnimarGauge(false)
     setUrlResultado(null)
+    setArchivoResultado(null)
 
     // Análisis de URL con VirusTotal (corre en paralelo si hay URL)
     if (urlSospechosa.trim()) {
@@ -1205,6 +1206,11 @@ export default function App() {
         setUrlResultado(res)
         setUrlAnalizando(false)
       })
+    }
+
+    // Análisis de archivo con VirusTotal (corre en paralelo si hay archivo)
+    if (archivo) {
+      analizarArchivo(archivo)
     }
 
     setTimeout(() => {
@@ -1346,67 +1352,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Resultado instantáneo del archivo */}
-              {(archivoAnalizando || archivoResultado) && (
-                <div className="vt-section vt-file-result">
-                  {archivoAnalizando && (
-                    <div className="vt-loading">
-                      <span className="analyzing-ring" style={{ width: 20, height: 20, borderWidth: 2 }} />
-                      <span>Analizando archivo en VirusTotal…</span>
-                    </div>
-                  )}
-                  {archivoResultado && !archivoAnalizando && (() => {
-                    if (archivoResultado.error) return (
-                      <div className="vt-error">
-                        <span className="material-icons">wifi_off</span>
-                        {archivoResultado.error}
-                      </div>
-                    )
-                    const { stats, engines, vtLink, cached } = archivoResultado
-                    const total   = Object.values(stats).reduce((a, b) => a + b, 0)
-                    const mal     = stats.malicious  || 0
-                    const sus     = stats.suspicious || 0
-                    const flagged = mal + sus
-                    const vtNivel = mal >= 3 ? 'malicioso' : mal >= 1 || sus >= 2 ? 'sospechoso' : 'limpio'
-                    const vtColor = vtNivel === 'malicioso'  ? 'var(--color-critico)'
-                                  : vtNivel === 'sospechoso' ? 'var(--color-precaucion)'
-                                  : 'var(--color-seguro)'
-                    return (
-                      <div className="vt-result">
-                        <div className="vt-summary">
-                          <div className="vt-ratio" style={{ color: vtColor }}>
-                            <span className="vt-ratio-num">{flagged}</span>
-                            <span className="vt-ratio-sep"> / </span>
-                            <span className="vt-ratio-total">{total}</span>
-                          </div>
-                          <div className="vt-summary-text">
-                            <span className="vt-badge" style={{ color: vtColor, borderColor: vtColor + '55', background: vtColor + '18' }}>
-                              {vtNivel === 'malicioso' ? '🔴 MALICIOSO' : vtNivel === 'sospechoso' ? '🟡 SOSPECHOSO' : '🟢 LIMPIO'}
-                            </span>
-                            <span className="vt-sub">motores lo detectaron como {vtNivel}</span>
-                            {cached && <span className="vt-date">Resultado desde caché de VirusTotal</span>}
-                          </div>
-                          {vtLink && (
-                            <a href={vtLink} target="_blank" rel="noreferrer" className="vt-link-btn">
-                              <span className="material-icons">open_in_new</span>
-                              Ver en VT
-                            </a>
-                          )}
-                        </div>
-                        {engines.length > 0 && (
-                          <div className="vt-engines">
-                            {engines.map(e => (
-                              <span key={e.name} className={`vt-engine-tag vt-engine-${e.category}`}>
-                                {e.name}: {e.result}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })()}
-                </div>
-              )}
             </div>
 
             {formError && (
@@ -1544,6 +1489,74 @@ export default function App() {
                           )}
                         </div>
 
+                        {engines.length > 0 && (
+                          <div className="vt-engines">
+                            {engines.map(e => (
+                              <span key={e.name} className={`vt-engine-tag vt-engine-${e.category}`}>
+                                {e.name}: {e.result}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {/* ── VirusTotal Archivo Result ── */}
+              {(archivoAnalizando || archivoResultado) && (
+                <div className="vt-section">
+                  <h3 className="section-title">
+                    <span className="material-icons">insert_drive_file</span>
+                    Análisis de archivo · VirusTotal
+                  </h3>
+
+                  {archivoAnalizando && (
+                    <div className="vt-loading">
+                      <span className="analyzing-ring" style={{ width: 22, height: 22, borderWidth: 2 }} />
+                      <span>Analizando archivo en VirusTotal…</span>
+                    </div>
+                  )}
+
+                  {archivoResultado && !archivoAnalizando && (() => {
+                    if (archivoResultado.error) return (
+                      <div className="vt-error">
+                        <span className="material-icons">wifi_off</span>
+                        {archivoResultado.error}
+                      </div>
+                    )
+                    const { stats, engines, vtLink, cached } = archivoResultado
+                    const total   = Object.values(stats).reduce((a, b) => a + b, 0)
+                    const mal     = stats.malicious  || 0
+                    const sus     = stats.suspicious || 0
+                    const flagged = mal + sus
+                    const vtNivel = mal >= 3 ? 'malicioso' : mal >= 1 || sus >= 2 ? 'sospechoso' : 'limpio'
+                    const vtColor = vtNivel === 'malicioso'  ? 'var(--color-critico)'
+                                  : vtNivel === 'sospechoso' ? 'var(--color-precaucion)'
+                                  : 'var(--color-seguro)'
+                    return (
+                      <div className="vt-result">
+                        <div className="vt-summary">
+                          <div className="vt-ratio" style={{ color: vtColor }}>
+                            <span className="vt-ratio-num">{flagged}</span>
+                            <span className="vt-ratio-sep"> / </span>
+                            <span className="vt-ratio-total">{total}</span>
+                          </div>
+                          <div className="vt-summary-text">
+                            <span className="vt-badge" style={{ color: vtColor, borderColor: vtColor + '55', background: vtColor + '18' }}>
+                              {vtNivel === 'malicioso' ? '🔴 MALICIOSO' : vtNivel === 'sospechoso' ? '🟡 SOSPECHOSO' : '🟢 LIMPIO'}
+                            </span>
+                            <span className="vt-sub">motores lo detectaron como {vtNivel}</span>
+                            {cached && <span className="vt-date">Resultado desde caché de VirusTotal</span>}
+                          </div>
+                          {vtLink && (
+                            <a href={vtLink} target="_blank" rel="noreferrer" className="vt-link-btn">
+                              <span className="material-icons">open_in_new</span>
+                              Ver en VirusTotal
+                            </a>
+                          )}
+                        </div>
                         {engines.length > 0 && (
                           <div className="vt-engines">
                             {engines.map(e => (
