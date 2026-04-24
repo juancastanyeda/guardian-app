@@ -1185,6 +1185,84 @@ textarea {
   background: color-mix(in srgb, var(--color-precaucion) 12%, transparent);
 }
 
+/* ─── File Drop Zone ─────────────────────────────────────────────────── */
+
+.file-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) var(--sp-4);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  color: var(--color-text-muted);
+  text-align: center;
+  user-select: none;
+  min-height: 110px;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.dragging {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+}
+
+.file-drop-zone.dragging {
+  border-style: solid;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.file-drop-zone.has-file {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  color: var(--color-text-primary);
+}
+
+.file-drop-icon {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.file-drop-zone.has-file .file-drop-icon {
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+.file-drop-hint {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.file-drop-sub {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.file-drop-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 var(--sp-3);
+}
+
+.file-drop-size {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.vt-file-result {
+  margin-top: var(--sp-3);
+  margin-bottom: 0;
+}
+
 @media (max-width: 480px) {
   .panel {
     padding: var(--sp-5);

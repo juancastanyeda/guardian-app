@@ -1110,11 +1110,56 @@ export default function App() {
   const [urlSospechosa, setUrlSospechosa] = useState('')
   const [urlResultado, setUrlResultado] = useState(null)
   const [urlAnalizando, setUrlAnalizando] = useState(false)
+  const [archivo, setArchivo] = useState(null)
+  const [archivoResultado, setArchivoResultado] = useState(null)
+  const [archivoAnalizando, setArchivoAnalizando] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const [resultado, setResultado] = useState(null)
   const [analizando, setAnalizando] = useState(false)
   const [animarGauge, setAnimarGauge] = useState(false)
   const [formError, setFormError] = useState('')
   const resultsRef = useRef(null)
+  const fileInputRef = useRef(null)
+
+  async function analizarArchivo(file) {
+    setArchivoAnalizando(true)
+    setArchivoResultado(null)
+    try {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result.split(',')[1])
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      const res = await fetch('/api/vt-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, data: base64 }),
+      })
+      if (!res.ok) throw new Error(`Error del servidor (${res.status})`)
+      setArchivoResultado(await res.json())
+    } catch (err) {
+      setArchivoResultado({ error: err.message })
+    } finally {
+      setArchivoAnalizando(false)
+    }
+  }
+
+  function handleFileDrop(e) {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (!file) return
+    setArchivo(file)
+    analizarArchivo(file)
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setArchivo(file)
+    analizarArchivo(file)
+  }
 
   function cargarEjemplo() {
     setRemitente(EJEMPLO.remitente)
@@ -1132,6 +1177,10 @@ export default function App() {
     setUrlSospechosa('')
     setUrlResultado(null)
     setUrlAnalizando(false)
+    setArchivo(null)
+    setArchivoResultado(null)
+    setArchivoAnalizando(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
     setFormError('')
     setResultado(null)
     setAnimarGauge(false)
@@ -1261,6 +1310,103 @@ export default function App() {
                   spellCheck={false}
                 />
               </div>
+            </div>
+
+            {/* ── Análisis de archivo ── */}
+            <div className="field-group">
+              <label>
+                Análisis de archivo
+                <span className="label-hint"> (VirusTotal — opcional)</span>
+              </label>
+              <div
+                className={`file-drop-zone${dragging ? ' dragging' : ''}${archivo ? ' has-file' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDragging(true) }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleFileDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={handleFileSelect}
+                />
+                {archivo ? (
+                  <>
+                    <span className="material-icons file-drop-icon">insert_drive_file</span>
+                    <span className="file-drop-name">{archivo.name}</span>
+                    <span className="file-drop-size">{(archivo.size / 1024).toFixed(1)} KB</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons file-drop-icon">upload_file</span>
+                    <span className="file-drop-hint">Arrastra un archivo aquí</span>
+                    <span className="file-drop-sub">o haz clic para seleccionar</span>
+                  </>
+                )}
+              </div>
+
+              {/* Resultado instantáneo del archivo */}
+              {(archivoAnalizando || archivoResultado) && (
+                <div className="vt-section vt-file-result">
+                  {archivoAnalizando && (
+                    <div className="vt-loading">
+                      <span className="analyzing-ring" style={{ width: 20, height: 20, borderWidth: 2 }} />
+                      <span>Analizando archivo en VirusTotal…</span>
+                    </div>
+                  )}
+                  {archivoResultado && !archivoAnalizando && (() => {
+                    if (archivoResultado.error) return (
+                      <div className="vt-error">
+                        <span className="material-icons">wifi_off</span>
+                        {archivoResultado.error}
+                      </div>
+                    )
+                    const { stats, engines, vtLink, cached } = archivoResultado
+                    const total   = Object.values(stats).reduce((a, b) => a + b, 0)
+                    const mal     = stats.malicious  || 0
+                    const sus     = stats.suspicious || 0
+                    const flagged = mal + sus
+                    const vtNivel = mal >= 3 ? 'malicioso' : mal >= 1 || sus >= 2 ? 'sospechoso' : 'limpio'
+                    const vtColor = vtNivel === 'malicioso'  ? 'var(--color-critico)'
+                                  : vtNivel === 'sospechoso' ? 'var(--color-precaucion)'
+                                  : 'var(--color-seguro)'
+                    return (
+                      <div className="vt-result">
+                        <div className="vt-summary">
+                          <div className="vt-ratio" style={{ color: vtColor }}>
+                            <span className="vt-ratio-num">{flagged}</span>
+                            <span className="vt-ratio-sep"> / </span>
+                            <span className="vt-ratio-total">{total}</span>
+                          </div>
+                          <div className="vt-summary-text">
+                            <span className="vt-badge" style={{ color: vtColor, borderColor: vtColor + '55', background: vtColor + '18' }}>
+                              {vtNivel === 'malicioso' ? '🔴 MALICIOSO' : vtNivel === 'sospechoso' ? '🟡 SOSPECHOSO' : '🟢 LIMPIO'}
+                            </span>
+                            <span className="vt-sub">motores lo detectaron como {vtNivel}</span>
+                            {cached && <span className="vt-date">Resultado desde caché de VirusTotal</span>}
+                          </div>
+                          {vtLink && (
+                            <a href={vtLink} target="_blank" rel="noreferrer" className="vt-link-btn">
+                              <span className="material-icons">open_in_new</span>
+                              Ver en VT
+                            </a>
+                          )}
+                        </div>
+                        {engines.length > 0 && (
+                          <div className="vt-engines">
+                            {engines.map(e => (
+                              <span key={e.name} className={`vt-engine-tag vt-engine-${e.category}`}>
+                                {e.name}: {e.result}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
             </div>
 
             {formError && (
