@@ -1657,7 +1657,7 @@ export default function App() {
 
       <footer className="app-footer">
         <span className="material-icons">info_outline</span>
-        Guardian es una herramienta de apoyo. Ante cualquier duda, contacte a su equipo de TI o seguridad corporativa.
+        Guardian es una herramienta de apoyo orientativa. Ante cualquier duda, contacte a la Mesa de Ayuda Alix o al equipo de Ciberseguridad.
       </footer>
     </>
   )
