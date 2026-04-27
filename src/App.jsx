@@ -26,7 +26,7 @@ function detectarRemitenteSospechoso(remitente) {
     'mail.com', 'yandex.com', 'msn.com', 'me.com',
   ]
   const suspiciousTlds = ['.xyz', '.top', '.tk', '.ml', '.ga', '.cf', '.gq', '.click', '.info', '.biz', '.pw', '.cc']
-  const brands = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'banco', 'bbva', 'santander', 'facebook', 'instagram']
+  const brands = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'banco', 'bbva', 'santander', 'facebook', 'instagram', 'adobe']
 
   const emailMatch = remitente.match(/<([^>]+)>/) || remitente.match(/([^\s]+@[^\s]+)/)
   const email = emailMatch ? emailMatch[1].toLowerCase() : remitente.toLowerCase()
@@ -147,6 +147,13 @@ function detectarUrgencia(asunto, cuerpo) {
     'subpoena', 'arrest warrant', 'penalty', 'fine imposed', 'legal proceedings',
     'debt collection', 'failure to respond', 'will result in', 'within 24 hours',
     'within 48 hours', 'you must', 'you are required', 'mandatory',
+    // ── Software / update scam ──
+    'important update', 'critical update', 'security update', 'software update',
+    'update available', 'update required', 'update now', 'requires an update',
+    'failing to update', 'your system vulnerable', 'leave your system vulnerable',
+    'security patches', 'security patch', 'critical security patch', 'critical security',
+    'priority: critical', 'critical priority', 'outdated version', 'outdated software',
+    'your current version', 'latest version available', 'may leave your system',
   ]
   const found = containsAny(`${asunto} ${cuerpo}`, keywords)
   if (found.length === 0) return null
@@ -340,8 +347,11 @@ function detectarSaludoGenerico(cuerpo) {
     'to our customers', 'to our valued customers', 'to all employees',
     'dear friend', 'dear beneficiary', 'dear winner', 'dear applicant',
   ]
-  const start = norm(cuerpo.slice(0, 250))
+  const start = norm(cuerpo.slice(0, 300))
   const match = patterns.find(p => start.includes(norm(p)))
+    // "Dear Adobe Acrobat User", "Dear PayPal Customer", etc. — nombre de producto en lugar de persona
+    || (/\bdear\s+\w+(?:\s+\w+){0,2}\s+(?:user|customer|account\s+holder|subscriber)\b/i.test(cuerpo.slice(0, 300))
+        && 'dear [producto] user')
   if (!match) return null
 
   return {
@@ -396,6 +406,14 @@ function detectarErroresRedaccion(cuerpo) {
     errors.push('afirmación de compromiso de cuenta sin evidencia')
   if (/\bwe\s+(?:noticed|detected|observed)\s+(?:unusual|suspicious|unauthorized)\b/i.test(cuerpo))
     errors.push('"we noticed unusual activity" (gancho clásico de phishing en inglés)')
+  if (/\bwe\s+(?:have\s+)?detected\s+that\b/i.test(cuerpo))
+    errors.push('"we have detected that" (apertura clásica de phishing de software)')
+  if (/\bfailing\s+to\s+(?:update|verify|respond|confirm|comply)\b/i.test(cuerpo))
+    errors.push('"failing to [acción]" (consecuencia artificial para crear presión)')
+  if (/\bpriority\s*[:\-]\s*critical\b/i.test(cuerpo))
+    errors.push('"Priority: Critical" (urgencia fabricada en tabla/formato)')
+  if (/\bleave\s+your\s+system\s+vulnerable\b/i.test(cuerpo))
+    errors.push('"leave your system vulnerable" (amenaza vaga para forzar acción)')
 
   // Palabras judiciales con tilde faltante frecuentes en phishing
   const judicialAccents = [
@@ -436,6 +454,7 @@ function detectarSuplantacion(remitente, asunto, cuerpo) {
   const brandKeywords = [
     'microsoft', 'windows', 'office 365', 'azure', 'google', 'gmail',
     'apple', 'icloud', 'paypal', 'amazon', 'netflix', 'spotify', 'dropbox',
+    'adobe', 'adobe acrobat', 'adobe reader', 'acrobat reader', 'acrobat',
     'banco', 'bbva', 'santander', 'banamex', 'bancomer', 'hsbc', 'citibank',
     'scotiabank', 'banorte', 'inbursa', 'facebook', 'instagram', 'whatsapp',
     // Entidades judiciales y gubernamentales (Colombia y región)
@@ -506,6 +525,7 @@ function detectarSuplantacion(remitente, asunto, cuerpo) {
 
 const BRAND_MAP = {
   microsoft:  ['microsoft', 'office 365', 'office365', 'windows', 'azure', 'outlook', 'teams', 'onedrive'],
+  adobe:      ['adobe', 'adobe acrobat', 'adobe reader', 'acrobat', 'acrobat reader', 'adobe pdf', 'adobe sign'],
   google:     ['google', 'gmail', 'workspace', 'drive', 'youtube', 'google docs'],
   apple:      ['apple', 'icloud', 'itunes', 'app store', 'macbook', 'iphone'],
   paypal:     ['paypal', 'pay pal'],
@@ -832,6 +852,32 @@ function evaluarCoherenciaRemitente(remitente, asunto, cuerpo) {
   return { hayCoincidencia, esTldSospechoso, senderWords }
 }
 
+function detectarActualizacionFalsa(asunto, cuerpo) {
+  const keywords = [
+    'important update', 'critical update', 'security update', 'software update',
+    'update available', 'update required', 'update now', 'requires an update',
+    'failing to update', 'your system vulnerable', 'leave your system vulnerable',
+    'security patches', 'security patch', 'critical security', 'critical patch',
+    'latest version', 'new version available', 'update your software',
+    'performance improvements', 'update type', 'release date', 'latest release',
+    'outdated version', 'outdated software', 'current version requires',
+    'your system may be', 'protect your system', 'system at risk',
+    'download and install', 'install the update', 'click to update',
+    'update your', 'version available', 'priority: critical',
+  ]
+  const found = containsAny(`${asunto} ${cuerpo}`, keywords)
+  if (found.length < 2) return null
+
+  return {
+    id: 'actualizacion_falsa',
+    nombre: 'Trampa de actualización de software',
+    icono: 'system_update_alt',
+    descripcion: `El correo simula ser una alerta oficial de actualización de software ("${found[0]}", "${found[1]}"). Las actualizaciones legítimas NO se notifican por correo con tablas de versión y llamados urgentes a la acción.`,
+    peso: 25,
+    severidad: 'alta',
+  }
+}
+
 function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
   const senalesDetectadas = []
   let rawScore = 0
@@ -846,6 +892,7 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
     detectarErroresRedaccion(cuerpo),
     detectarSuplantacion(remitente, asunto, cuerpo),
     detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo),
+    detectarActualizacionFalsa(asunto, cuerpo),
   ]
 
   for (const signal of detectors) {
