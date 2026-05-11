@@ -745,10 +745,13 @@ function detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo) {
 // ─── Scoring ─────────────────────────────────────────────────────────────────
 
 function calcularNivel(puntuacion) {
-  if (puntuacion <= 25) return { nivel: 'SEGURO',      color: '#C0D22E' }  /* Verde Lima  */
-  if (puntuacion <= 50) return { nivel: 'PRECAUCIÓN',  color: '#F9B036' }  /* Amarillo    */
-  if (puntuacion <= 75) return { nivel: 'ALTO RIESGO', color: '#664882' }  /* Púrpura     */
-  return                       { nivel: 'CRÍTICO',     color: '#ef4444' }  /* Rojo        */
+  // color      = gauge arc stroke + badge background
+  // textColor  = badge label text (accessible on color background)
+  // scoreColor = large score number (dark, readable on white panel)
+  if (puntuacion <= 25) return { nivel: 'SEGURO',      color: '#C8E000', textColor: '#1A1A1A', scoreColor: '#5A8000' }
+  if (puntuacion <= 50) return { nivel: 'PRECAUCIÓN',  color: '#E8E000', textColor: '#1A1A1A', scoreColor: '#8A7200' }
+  if (puntuacion <= 75) return { nivel: 'ALTO RIESGO', color: '#664882', textColor: '#FFFFFF',  scoreColor: '#664882' }
+  return                       { nivel: 'CRÍTICO',     color: '#ef4444', textColor: '#FFFFFF',  scoreColor: '#D92D20' }
 }
 
 function generarRecomendaciones(nivel, senales) {
@@ -935,10 +938,10 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
   }
 
   const puntuacion = Math.min(rawScore, 99)
-  const { nivel, color: nivelColor } = calcularNivel(puntuacion)
+  const { nivel, color: nivelColor, textColor: nivelTextColor, scoreColor: nivelScoreColor } = calcularNivel(puntuacion)
   const recomendaciones = generarRecomendaciones(nivel, senalesDetectadas)
 
-  return { puntuacion, nivel, nivelColor, senalesDetectadas, recomendaciones }
+  return { puntuacion, nivel, nivelColor, nivelTextColor, nivelScoreColor, senalesDetectadas, recomendaciones }
 }
 
 // ─── Example ─────────────────────────────────────────────────────────────────
@@ -1096,23 +1099,23 @@ function DobermanMascot({ className = '', searching = false, nivel = null }) {
       <ellipse cx="80" cy="152" rx="40" ry="24" fill="#1a0b04" />
       <ellipse cx="80" cy="157" rx="28" ry="16" fill="#c47820" opacity="0.72" />
 
-      {/* ── Collar teal ── */}
-      <path d="M 40,164 Q 80,180 120,164 L 118,155 Q 80,170 42,155 Z" fill="#14b8a6" />
-      <path d="M 73,170 Q 80,182 87,170 Q 80,158 73,170 Z" fill="#0d9488" />
-      <text x="80" y="176" fill="#e0fffe" fontSize="7" textAnchor="middle" fontWeight="bold">G</text>
+      {/* ── Collar lima ── */}
+      <path d="M 40,164 Q 80,180 120,164 L 118,155 Q 80,170 42,155 Z" fill="#C8E000" />
+      <path d="M 73,170 Q 80,182 87,170 Q 80,158 73,170 Z" fill="#ADC000" />
+      <text x="80" y="176" fill="#1A1A1A" fontSize="7" textAnchor="middle" fontWeight="bold">G</text>
 
       {/* ── Lupa (solo durante búsqueda) ── */}
       {searching && (
         <g className="dober-loupe">
           {/* lente */}
-          <circle cx="116" cy="158" r="15" fill="#14b8a6" opacity="0.12" />
-          <circle cx="116" cy="158" r="15" fill="none" stroke="#14b8a6" strokeWidth="3.5" />
+          <circle cx="116" cy="158" r="15" fill="#1A1A1A" opacity="0.08" />
+          <circle cx="116" cy="158" r="15" fill="none" stroke="#1A1A1A" strokeWidth="3.5" />
           {/* mango */}
-          <line x1="126" y1="169" x2="138" y2="182" stroke="#14b8a6" strokeWidth="3.5" strokeLinecap="round" />
+          <line x1="126" y1="169" x2="138" y2="182" stroke="#1A1A1A" strokeWidth="3.5" strokeLinecap="round" />
           {/* línea de escaneo dentro del lente */}
-          <line className="dober-scan-line" x1="107" y1="158" x2="125" y2="158" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+          <line className="dober-scan-line" x1="107" y1="158" x2="125" y2="158" stroke="#C8E000" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
           {/* brillo del lente */}
-          <circle cx="110" cy="152" r="3.5" fill="white" opacity="0.2" />
+          <circle cx="110" cy="152" r="3.5" fill="white" opacity="0.25" />
         </g>
       )}
     </svg>
@@ -1492,7 +1495,7 @@ export default function App() {
                   animate={animarGauge}
                 />
                 <div className="score-display">
-                  <span className="score-number" style={{ color: resultado.nivelColor }}>
+                  <span className="score-number" style={{ color: resultado.nivelScoreColor }}>
                     {resultado.puntuacion}
                   </span>
                   <span className="score-label">/ 100</span>
@@ -1500,9 +1503,9 @@ export default function App() {
                 <div
                   className={`nivel-badge nivel-${nivelSlug}`}
                   style={{
-                    color: resultado.nivelColor,
-                    borderColor: resultado.nivelColor + '55',
-                    backgroundColor: resultado.nivelColor + '18',
+                    backgroundColor: resultado.nivelColor,
+                    borderColor: resultado.nivelColor,
+                    color: resultado.nivelTextColor,
                   }}
                 >
                   {resultado.nivel}

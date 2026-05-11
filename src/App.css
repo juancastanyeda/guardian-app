@@ -1,8 +1,8 @@
 /* ─── Layout ────────────────────────────────────────────────────────── */
 
 .app-header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: #1A1A1A;
+  border-bottom: 1px solid #2A2A2A;
   padding: 0 var(--sp-8);
   height: 64px;
   display: flex;
@@ -36,26 +36,26 @@
 .header-title {
   font-size: 1.35rem;
   font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
+  color: #FFFFFF;
   letter-spacing: 0.02em;
 }
 
 .header-by {
   font-size: 0.72rem;
   font-weight: var(--font-weight-light);
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.04em;
 }
 
 .header-by strong {
   font-weight: var(--font-weight-medium);
-  color: var(--color-primary);
+  color: var(--color-primary);   /* Lima sobre negro — contraste OK */
 }
 
 .header-subtitle {
   font-size: 0.78rem;
   font-weight: var(--font-weight-light);
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.45);
   letter-spacing: 0.02em;
 }
 
@@ -116,12 +116,12 @@
 }
 
 .panel-title .material-icons {
-  color: var(--color-primary);   /* Verde Lima — panel formulario */
+  color: var(--color-text-secondary);   /* Gris oscuro — legible en panel blanco */
   font-size: 20px;
 }
 
 .panel-results .panel-title .material-icons {
-  color: var(--color-accent);    /* Verde Teal — panel resultados */
+  color: var(--color-text-secondary);
 }
 
 .panel-desc {
@@ -310,8 +310,8 @@ textarea {
 }
 
 .btn-primary {
-  background: var(--color-accent);
-  color: #000;
+  background: var(--color-accent);   /* #C8E000 */
+  color: #1A1A1A;
   font-weight: 700;
   margin-left: auto;
 }
@@ -330,7 +330,7 @@ textarea {
 .btn-secondary:hover {
   background: var(--color-surface-2);
   color: var(--color-text-primary);
-  border-color: var(--color-accent);
+  border-color: var(--color-text-muted);
 }
 
 .btn-ghost {
@@ -341,7 +341,7 @@ textarea {
 
 .btn-ghost:hover {
   color: var(--color-text-secondary);
-  border-color: var(--color-border-focus);
+  border-color: var(--color-text-muted);
 }
 
 /* ─── Spinner ───────────────────────────────────────────────────────── */
@@ -350,8 +350,8 @@ textarea {
   display: inline-block;
   width: 15px;
   height: 15px;
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  border-top-color: #000;
+  border: 2px solid rgba(26, 26, 26, 0.25);
+  border-top-color: #1A1A1A;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -374,8 +374,8 @@ textarea {
 
 .empty-icon {
   font-size: 72px !important;
-  color: var(--color-accent);
-  opacity: 0.25;
+  color: var(--color-text-muted);
+  opacity: 0.3;
 }
 
 .empty-state h3 {
@@ -411,7 +411,7 @@ textarea {
 .analyzing-ring {
   width: 48px;
   height: 48px;
-  border: 3px solid var(--color-surface-3);
+  border: 3px solid var(--color-border);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
@@ -502,29 +502,29 @@ textarea {
 
 .section-title .material-icons {
   font-size: 18px;
-  color: var(--color-accent);   /* Teal por defecto */
+  color: var(--color-text-secondary);
 }
 
-/* Señales detectadas → Verde Lima */
+/* Señales detectadas */
 .signals-section .section-title .material-icons {
-  color: var(--color-primary);
+  color: var(--color-text-secondary);
 }
 
-/* Qué hacer / recomendaciones → Verde Teal */
+/* Recomendaciones */
 .recs-section .section-title .material-icons {
-  color: var(--color-accent);
+  color: var(--color-text-secondary);
 }
 
-/* Secciones VirusTotal → Amarillo (contexto de alerta) */
+/* VirusTotal */
 .vt-section .section-title .material-icons {
-  color: var(--color-accent-yellow);
+  color: var(--color-text-secondary);
 }
 
 .signals-count {
   margin-left: auto;
   font-size: 0.75rem;
   font-weight: var(--font-weight-medium);
-  color: var(--color-neutral);
+  color: var(--color-text-muted);
   background: var(--color-surface-3);
   border: 1px solid var(--color-border);
   padding: 2px 8px;
@@ -552,6 +552,7 @@ textarea {
   background: var(--color-surface-2);
   border-radius: var(--r-md);
   padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--color-border);
   border-left: 3px solid transparent;
   animation: slide-in 0.3s ease both;
 }
@@ -607,6 +608,7 @@ textarea {
   font-weight: 700;
   color: var(--color-text-muted);
   background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
   padding: 2px 7px;
   border-radius: var(--r-full);
   align-self: flex-start;
@@ -620,8 +622,8 @@ textarea {
   color: var(--color-seguro);
   font-size: 0.88rem;
   padding: var(--sp-3) var(--sp-4);
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: rgba(200, 224, 0, 0.1);
+  border: 1px solid rgba(200, 224, 0, 0.35);
   border-radius: var(--r-md);
 }
 
@@ -649,6 +651,7 @@ textarea {
   font-size: 0.85rem;
   color: var(--color-text-secondary);
   background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
   border-radius: var(--r-sm);
   padding: var(--sp-2) var(--sp-3);
   line-height: 1.5;
@@ -656,7 +659,7 @@ textarea {
 
 .rec-chevron {
   font-size: 16px !important;
-  color: var(--color-accent);
+  color: var(--color-text-muted);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -666,8 +669,8 @@ textarea {
 .report-section {
   margin-top: var(--sp-5);
   padding: var(--sp-5);
-  background: rgba(20, 184, 166, 0.06);
-  border: 1px solid rgba(20, 184, 166, 0.25);
+  background: rgba(200, 224, 0, 0.06);
+  border: 1px solid rgba(200, 224, 0, 0.3);
   border-radius: var(--r-md);
   display: flex;
   flex-direction: column;
@@ -682,7 +685,7 @@ textarea {
 
 .report-header .material-icons {
   font-size: 22px;
-  color: var(--color-accent);
+  color: var(--color-text-secondary);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -705,8 +708,8 @@ textarea {
   align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-5);
-  background: var(--color-accent);
-  color: #000;
+  background: #1A1A1A;
+  color: #FFFFFF;
   font-weight: 700;
   font-size: 0.88rem;
   border-radius: var(--r-full);
@@ -722,8 +725,8 @@ textarea {
 }
 
 .btn-report:hover {
-  background: var(--color-accent-dim);
-  box-shadow: var(--shadow-glow);
+  background: #333333;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
 .btn-report:active {
@@ -743,8 +746,7 @@ textarea {
   font-size: 14px;
   flex-shrink: 0;
   margin-top: 1px;
-  color: var(--color-accent);
-  opacity: 0.7;
+  color: var(--color-text-muted);
 }
 
 /* ─── Results Content Animation ─────────────────────────────────────── */
@@ -801,7 +803,7 @@ textarea {
   width: auto;
   flex-shrink: 0;
   animation: dober-breathe 3.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 6px rgba(20, 184, 166, 0.3));
+  filter: drop-shadow(0 0 6px rgba(200, 224, 0, 0.4));
 }
 
 /* Empty-state variant — large, centered */
@@ -809,7 +811,7 @@ textarea {
   height: 220px;
   width: auto;
   animation: dober-breathe 3.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 22px rgba(20, 184, 166, 0.3));
+  filter: drop-shadow(0 0 22px rgba(26, 26, 26, 0.12));
 }
 
 /* ── Breathing (subtle vertical scale) ── */
@@ -892,7 +894,7 @@ textarea {
 /* Override breathe with a side-sway when searching */
 .dober-searching {
   animation: dober-search-sway 1.6s ease-in-out infinite !important;
-  filter: drop-shadow(0 0 26px rgba(20, 184, 166, 0.45)) !important;
+  filter: drop-shadow(0 0 26px rgba(200, 224, 0, 0.55)) !important;
 }
 
 @keyframes dober-search-sway {
@@ -960,7 +962,7 @@ textarea {
 /* ── SEGURO — perro feliz, saltito verde ── */
 .dober-nivel-seguro {
   animation: dober-happy-bounce 1.8s ease-in-out infinite !important;
-  filter: drop-shadow(0 0 18px rgba(34, 197, 94, 0.55)) !important;
+  filter: drop-shadow(0 0 18px rgba(200, 224, 0, 0.65)) !important;
 }
 
 @keyframes dober-happy-bounce {
@@ -1189,19 +1191,20 @@ textarea {
   gap: var(--sp-1);
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-text-secondary);
   text-decoration: none;
-  border: 1px solid var(--color-accent);
+  border: 1px solid var(--color-border);
   border-radius: var(--r-md);
   padding: 6px 12px;
-  transition: background 0.18s, color 0.18s;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
   white-space: nowrap;
   margin-left: auto;
 }
 
 .vt-link-btn:hover {
   background: var(--color-accent);
-  color: #fff;
+  color: #1A1A1A;
+  border-color: var(--color-accent);
 }
 
 .vt-link-btn .material-icons {
