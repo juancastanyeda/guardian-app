@@ -15,6 +15,43 @@ function containsAny(text, keywords) {
   return keywords.filter(kw => n.includes(norm(kw)))
 }
 
+// Distancia de Levenshtein — mide cuántos cambios de un carácter separan dos cadenas
+function levenshtein(a, b) {
+  const m = a.length, n = b.length
+  const dp = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  )
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+  return dp[m][n]
+}
+
+// Detecta si alguna parte de un dominio es un typosquat de una marca conocida.
+// Devuelve { brand, part } si encuentra coincidencia, null en caso contrario.
+function detectarTyposquat(domain) {
+  const brandNames = [
+    'microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix',
+    'bbva', 'santander', 'facebook', 'instagram', 'adobe',
+  ]
+  // Quitar TLD y separar por punto, guión o guión bajo
+  const domainCore = domain.replace(/\.(com|net|org|co|gov|edu|gob|es|mx|ar|cl|pe|br)(\.co)?$/i, '')
+  const parts = domainCore.split(/[.\-_]/).filter(p => p.length >= 3)
+
+  for (const part of parts) {
+    for (const brand of brandNames) {
+      if (part === brand) continue                              // coincidencia exacta — no es typo
+      if (Math.abs(part.length - brand.length) > 3) continue  // longitudes muy distintas — descarta
+      // Umbral: 1 cambio para marcas cortas (≤5 letras), 2 para marcas largas
+      const maxDist = brand.length <= 5 ? 1 : 2
+      if (levenshtein(part, brand) <= maxDist) return { brand, part }
+    }
+  }
+  return null
+}
+
 // ─── Detectors ──────────────────────────────────────────────────────────────
 
 function detectarRemitenteSospechoso(remitente) {
@@ -26,24 +63,7 @@ function detectarRemitenteSospechoso(remitente) {
     'mail.com', 'yandex.com', 'msn.com', 'me.com',
   ]
   const suspiciousTlds = ['.xyz', '.top', '.tk', '.ml', '.ga', '.cf', '.gq', '.click', '.info', '.biz', '.pw', '.cc']
-  // Marcas con nombre único y dominios oficiales conocidos.
-  // NO incluir palabras genéricas del español (p. ej. "banco") — generan falsos positivos
-  // contra dominios legítimos como bancofalabella.com.co, bancolombia.com, etc.
-  const brands = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'bbva', 'santander', 'facebook', 'instagram', 'adobe']
-  // Dominios oficiales conocidos por marca (se excluyen de la detección de suplantación)
-  const officialDomains = {
-    microsoft: ['microsoft.com', 'microsoft.es', 'microsoft.net', 'office.com', 'live.com', 'outlook.com'],
-    google:    ['google.com', 'google.es', 'google.com.co', 'gmail.com', 'googleapis.com'],
-    apple:     ['apple.com', 'apple.es', 'icloud.com'],
-    paypal:    ['paypal.com', 'paypal.es', 'paypal.com.co'],
-    amazon:    ['amazon.com', 'amazon.es', 'amazonaws.com'],
-    netflix:   ['netflix.com', 'netflix.es'],
-    bbva:      ['bbva.com', 'bbva.es', 'bbva.com.co', 'bbva.mx'],
-    santander: ['santander.com', 'santander.es', 'santander.com.co', 'santander.com.mx'],
-    facebook:  ['facebook.com', 'fb.com', 'meta.com'],
-    instagram: ['instagram.com'],
-    adobe:     ['adobe.com', 'adobe.es', 'adobeconnect.com', 'adobesign.com'],
-  }
+  // Nota: la detección de suplantación de marca usa levenshtein() — no lista blanca.
 
   const emailMatch = remitente.match(/<([^>]+)>/) || remitente.match(/([^\s]+@[^\s]+)/)
   const email = emailMatch ? emailMatch[1].toLowerCase() : remitente.toLowerCase()
@@ -102,25 +122,26 @@ function detectarRemitenteSospechoso(remitente) {
     }
   }
 
-  // ── 3. Suplantación de marca en el dominio (siempre alto) ─────────────────────
-  // Solo aplica si el dominio contiene el nombre de la marca pero NO está en la lista
-  // de dominios oficiales conocidos para esa marca.
-  for (const brand of brands) {
-    if (domain.includes(brand) && !(officialDomains[brand] || []).includes(domain)) {
-      return {
-        id: 'remitente_sospechoso',
-        nombre: 'Remitente sospechoso',
-        icono: 'alternate_email',
-        descripcion: `El dominio "${domain}" contiene el nombre de "${brand}" pero no coincide con ninguno de sus dominios oficiales. Posible suplantación.`,
-        peso: 20,
-        severidad: 'alta',
-      }
+  // ── 3. Typosquat de marca en el dominio ──────────────────────────────────────
+  // Detecta errores tipográficos deliberados en el nombre de una marca conocida
+  // (p. ej. "microsofft", "paypa1", "gooogle") usando distancia de Levenshtein.
+  // No usa lista blanca: solo falla si hay un error ortográfico real.
+  const typo = detectarTyposquat(domain)
+  if (typo) {
+    return {
+      id: 'remitente_sospechoso',
+      nombre: 'Remitente sospechoso',
+      icono: 'alternate_email',
+      descripcion: `El dominio "${domain}" contiene "${typo.part}", que parece ser una variación con error tipográfico de "${typo.brand}". Técnica habitual de typosquatting para suplantar marcas.`,
+      peso: 20,
+      severidad: 'alta',
     }
   }
 
   if (displayNameMatch) {
     // ── 4. Marca en el nombre pero no en el dominio (siempre alto) ───────────────
-    for (const brand of brands) {
+    const brandNames = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'bbva', 'santander', 'facebook', 'instagram', 'adobe']
+    for (const brand of brandNames) {
       if (displayName.includes(brand) && !domain.includes(brand)) {
         return {
           id: 'remitente_sospechoso',
@@ -274,17 +295,7 @@ function detectarEnlacesSospechosos(cuerpo) {
 
   const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'ow.ly', 'goo.gl', 'rb.gy', 'cutt.ly', 'shorturl.at', 'is.gd', 'tiny.cc']
   const suspTlds = ['.xyz', '.top', '.tk', '.ml', '.ga', '.cf', '.gq', '.click', '.info', '.biz', '.pw']
-  // Sin "banco" — es una palabra genérica; fallaría contra dominios legítimos colombianos
-  const urlBrands = {
-    microsoft: ['microsoft.com', 'microsoft.es', 'office.com', 'microsoftonline.com', 'live.com', 'outlook.com'],
-    google:    ['google.com', 'google.es', 'google.com.co', 'googleapis.com', 'gstatic.com'],
-    apple:     ['apple.com', 'apple.es', 'icloud.com'],
-    paypal:    ['paypal.com', 'paypal.es', 'paypal.com.co'],
-    amazon:    ['amazon.com', 'amazon.es', 'amazonaws.com', 'amazon.com.co'],
-    netflix:   ['netflix.com', 'netflix.es'],
-    bbva:      ['bbva.com', 'bbva.es', 'bbva.com.co', 'bbva.mx'],
-    santander: ['santander.com', 'santander.es', 'santander.com.co'],
-  }
+  // La detección de typosquat en URLs usa detectarTyposquat() — no lista blanca.
 
   const issues = []
 
@@ -308,11 +319,9 @@ function detectarEnlacesSospechosos(cuerpo) {
       issues.push(`Dominio sospechoso: ${domainPart}`)
       continue
     }
-    for (const [brand, officialList] of Object.entries(urlBrands)) {
-      if (domainPart.includes(brand) && !officialList.some(od => domainPart === od || domainPart.endsWith(`.${od}`))) {
-        issues.push(`Dominio que imita a ${brand}: ${domainPart}`)
-        break
-      }
+    const urlTypo = detectarTyposquat(domainPart)
+    if (urlTypo) {
+      issues.push(`Dominio que imita a "${urlTypo.brand}" con error tipográfico ("${urlTypo.part}"): ${domainPart}`)
     }
     if (url.includes('@')) {
       issues.push(`URL con "@" (truco de engaño): ${url}`)
