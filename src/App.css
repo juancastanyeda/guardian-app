@@ -180,7 +180,7 @@
   position: absolute;
   left: var(--sp-3);
   font-size: 18px;
-  color: var(--color-text-muted);
+  color: #888888;
   pointer-events: none;
   z-index: 1;
 }
@@ -192,8 +192,8 @@
 input[type="text"],
 textarea {
   width: 100%;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface);      /* #FFFFFF — blanco, sobre panel blanco */
+  border: 1.5px solid #C5C5C5;           /* Borde visible para definir el campo  */
   border-radius: var(--r-sm);
   color: var(--color-text-primary);
   padding: var(--sp-3) var(--sp-4);
@@ -201,17 +201,18 @@ textarea {
   font-size: 0.9rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 input[type="text"]:focus,
 textarea:focus {
-  border-color: var(--color-border-focus);
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
 
 input[type="text"]::placeholder,
 textarea::placeholder {
-  color: var(--color-text-muted);
+  color: #AAAAAA;
 }
 
 textarea {
@@ -243,8 +244,8 @@ textarea {
   width: 20px;
   height: 20px;
   border-radius: var(--r-sm);
-  border: 2px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: 2px solid #C5C5C5;
+  background: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1262,7 +1263,7 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: var(--sp-2);
-  border: 2px dashed var(--color-border);
+  border: 2px dashed #C5C5C5;
   border-radius: var(--r-lg);
   padding: var(--sp-6) var(--sp-4);
   cursor: pointer;
