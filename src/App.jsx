@@ -1318,10 +1318,6 @@ export default function App() {
           </div>
         </div>
         <p className="header-subtitle">Analizador de correos sospechosos · Herramienta interna</p>
-        <div className="header-palette">
-          <span className="header-palette-swatch" />
-          <span className="header-palette-hex">#C8E000</span>
-        </div>
       </header>
 
       <main className="app-layout">

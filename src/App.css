@@ -45,43 +45,8 @@
   font-weight: var(--font-weight-light);
   color: rgba(255, 255, 255, 0.45);
   letter-spacing: 0.02em;
-  flex: 1;
-  text-align: center;
-  padding: 0 var(--sp-4);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
 }
 
-.header-palette {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--r-full);
-  padding: 5px 12px 5px 6px;
-}
-
-.header-palette-swatch {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #C8E000;
-  flex-shrink: 0;
-  box-shadow: 0 0 8px rgba(200, 224, 0, 0.5);
-}
-
-.header-palette-hex {
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-medium);
-  color: rgba(255, 255, 255, 0.75);
-  letter-spacing: 0.06em;
-  font-family: 'Courier New', monospace;
-}
 
 .app-layout {
   display: grid;
