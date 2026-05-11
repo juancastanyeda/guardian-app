@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './App.css'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -913,8 +913,8 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
   const coherencia = evaluarCoherenciaRemitente(remitente, asunto, cuerpo)
   if (coherencia) {
     if (!coherencia.hayCoincidencia) {
-      // Remitente sin relación con el contenido → forzar CRÍTICO
-      rawScore = Math.max(rawScore, 76)
+      // Remitente sin relación con el contenido → escalar a ALTO RIESGO (VT decide si es CRÍTICO)
+      rawScore = Math.max(rawScore, 65)
     } else if (coherencia.hayCoincidencia && !coherencia.esTldSospechoso && senalesDetectadas.length === 0) {
       // Dominio coherente Y ninguna señal de riesgo detectada → correo limpio
       rawScore = 0
@@ -927,7 +927,7 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
   const tieneDescargaProceso = /descargar?\s+(?:el\s+)?proceso|descargue\s+(?:el\s+)?proceso|download\s+(?:the\s+)?(?:process|legal\s+document|case\s+file|court\s+document)/i.test(cuerpo)
   const tieneClaveAcceso     = /clave\s*(?:de\s*)?acceso\s*[:=]|access\s*(?:key|code)\s*[:=]/i.test(cuerpo)
   if (tieneDescargaProceso || tieneClaveAcceso) {
-    rawScore = Math.max(rawScore, 76)
+    rawScore = Math.max(rawScore, 65)
   }
 
   // ── Sin señales → score mínimo ────────────────────────────────────────────
@@ -937,7 +937,8 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
     rawScore = 0
   }
 
-  const puntuacion = Math.min(rawScore, 99)
+  // Sin confirmación VT el máximo es ALTO RIESGO (75). CRÍTICO (99) lo decide VirusTotal.
+  const puntuacion = Math.min(rawScore, 75)
   const { nivel, color: nivelColor, textColor: nivelTextColor, scoreColor: nivelScoreColor } = calcularNivel(puntuacion)
   const recomendaciones = generarRecomendaciones(nivel, senalesDetectadas)
 
@@ -1300,6 +1301,24 @@ export default function App() {
       }
     }, 650)
   }
+
+  // ── Escalar a CRÍTICO si VirusTotal confirma compromiso ─────────────────────
+  // Se dispara cuando llegan los resultados de VT (URL o archivo).
+  // Umbral: ≥ 2 motores marcan como malicioso = certeza de compromiso.
+  useEffect(() => {
+    if (!resultado) return
+    const malURL  = urlResultado  && !urlResultado.error  && (urlResultado.stats?.malicious  || 0) >= 2
+    const malFile = archivoResultado && !archivoResultado.error && (archivoResultado.stats?.malicious || 0) >= 2
+    if (malURL || malFile) {
+      const critico = calcularNivel(99)
+      setResultado(prev =>
+        prev && prev.puntuacion < 99
+          ? { ...prev, puntuacion: 99, nivel: critico.nivel, nivelColor: critico.color,
+              nivelTextColor: critico.textColor, nivelScoreColor: critico.scoreColor }
+          : prev
+      )
+    }
+  }, [urlResultado, archivoResultado]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const nivelSlug = resultado
     ? resultado.nivel === 'CRÍTICO' ? 'critico'
