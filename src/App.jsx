@@ -26,7 +26,24 @@ function detectarRemitenteSospechoso(remitente) {
     'mail.com', 'yandex.com', 'msn.com', 'me.com',
   ]
   const suspiciousTlds = ['.xyz', '.top', '.tk', '.ml', '.ga', '.cf', '.gq', '.click', '.info', '.biz', '.pw', '.cc']
-  const brands = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'banco', 'bbva', 'santander', 'facebook', 'instagram', 'adobe']
+  // Marcas con nombre único y dominios oficiales conocidos.
+  // NO incluir palabras genéricas del español (p. ej. "banco") — generan falsos positivos
+  // contra dominios legítimos como bancofalabella.com.co, bancolombia.com, etc.
+  const brands = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'bbva', 'santander', 'facebook', 'instagram', 'adobe']
+  // Dominios oficiales conocidos por marca (se excluyen de la detección de suplantación)
+  const officialDomains = {
+    microsoft: ['microsoft.com', 'microsoft.es', 'microsoft.net', 'office.com', 'live.com', 'outlook.com'],
+    google:    ['google.com', 'google.es', 'google.com.co', 'gmail.com', 'googleapis.com'],
+    apple:     ['apple.com', 'apple.es', 'icloud.com'],
+    paypal:    ['paypal.com', 'paypal.es', 'paypal.com.co'],
+    amazon:    ['amazon.com', 'amazon.es', 'amazonaws.com'],
+    netflix:   ['netflix.com', 'netflix.es'],
+    bbva:      ['bbva.com', 'bbva.es', 'bbva.com.co', 'bbva.mx'],
+    santander: ['santander.com', 'santander.es', 'santander.com.co', 'santander.com.mx'],
+    facebook:  ['facebook.com', 'fb.com', 'meta.com'],
+    instagram: ['instagram.com'],
+    adobe:     ['adobe.com', 'adobe.es', 'adobeconnect.com', 'adobesign.com'],
+  }
 
   const emailMatch = remitente.match(/<([^>]+)>/) || remitente.match(/([^\s]+@[^\s]+)/)
   const email = emailMatch ? emailMatch[1].toLowerCase() : remitente.toLowerCase()
@@ -86,13 +103,15 @@ function detectarRemitenteSospechoso(remitente) {
   }
 
   // ── 3. Suplantación de marca en el dominio (siempre alto) ─────────────────────
+  // Solo aplica si el dominio contiene el nombre de la marca pero NO está en la lista
+  // de dominios oficiales conocidos para esa marca.
   for (const brand of brands) {
-    if (domain.includes(brand) && domain !== `${brand}.com` && domain !== `${brand}.es` && domain !== `${brand}.net`) {
+    if (domain.includes(brand) && !(officialDomains[brand] || []).includes(domain)) {
       return {
         id: 'remitente_sospechoso',
         nombre: 'Remitente sospechoso',
         icono: 'alternate_email',
-        descripcion: `El dominio "${domain}" intenta imitar la marca "${brand}" pero no es el dominio oficial. Posible suplantación.`,
+        descripcion: `El dominio "${domain}" contiene el nombre de "${brand}" pero no coincide con ninguno de sus dominios oficiales. Posible suplantación.`,
         peso: 20,
         severidad: 'alta',
       }
@@ -255,7 +274,17 @@ function detectarEnlacesSospechosos(cuerpo) {
 
   const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'ow.ly', 'goo.gl', 'rb.gy', 'cutt.ly', 'shorturl.at', 'is.gd', 'tiny.cc']
   const suspTlds = ['.xyz', '.top', '.tk', '.ml', '.ga', '.cf', '.gq', '.click', '.info', '.biz', '.pw']
-  const brands = ['microsoft', 'google', 'apple', 'paypal', 'amazon', 'netflix', 'banco', 'bbva', 'santander']
+  // Sin "banco" — es una palabra genérica; fallaría contra dominios legítimos colombianos
+  const urlBrands = {
+    microsoft: ['microsoft.com', 'microsoft.es', 'office.com', 'microsoftonline.com', 'live.com', 'outlook.com'],
+    google:    ['google.com', 'google.es', 'google.com.co', 'googleapis.com', 'gstatic.com'],
+    apple:     ['apple.com', 'apple.es', 'icloud.com'],
+    paypal:    ['paypal.com', 'paypal.es', 'paypal.com.co'],
+    amazon:    ['amazon.com', 'amazon.es', 'amazonaws.com', 'amazon.com.co'],
+    netflix:   ['netflix.com', 'netflix.es'],
+    bbva:      ['bbva.com', 'bbva.es', 'bbva.com.co', 'bbva.mx'],
+    santander: ['santander.com', 'santander.es', 'santander.com.co'],
+  }
 
   const issues = []
 
@@ -279,8 +308,8 @@ function detectarEnlacesSospechosos(cuerpo) {
       issues.push(`Dominio sospechoso: ${domainPart}`)
       continue
     }
-    for (const brand of brands) {
-      if (domainPart.includes(brand) && !domainPart.endsWith(`${brand}.com`) && !domainPart.endsWith(`${brand}.es`)) {
+    for (const [brand, officialList] of Object.entries(urlBrands)) {
+      if (domainPart.includes(brand) && !officialList.some(od => domainPart === od || domainPart.endsWith(`.${od}`))) {
         issues.push(`Dominio que imita a ${brand}: ${domainPart}`)
         break
       }
