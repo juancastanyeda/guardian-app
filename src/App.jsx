@@ -1315,10 +1315,13 @@ export default function App() {
           <DobermanMascot className="dober-header" />
           <div className="header-titles">
             <span className="header-title">Guardian</span>
-            <span className="header-by">by <strong>Haceb</strong></span>
           </div>
         </div>
         <p className="header-subtitle">Analizador de correos sospechosos · Herramienta interna</p>
+        <div className="header-palette">
+          <span className="header-palette-swatch" />
+          <span className="header-palette-hex">#C8E000</span>
+        </div>
       </header>
 
       <main className="app-layout">
