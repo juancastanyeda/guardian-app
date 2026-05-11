@@ -40,6 +40,18 @@
   letter-spacing: 0.02em;
 }
 
+.header-by {
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-light);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.04em;
+}
+
+.header-by strong {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);   /* #C8E000 — lima sobre negro */
+}
+
 .header-subtitle {
   font-size: 0.78rem;
   font-weight: var(--font-weight-light);
