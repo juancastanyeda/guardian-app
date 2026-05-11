@@ -203,9 +203,9 @@ textarea::placeholder {
 textarea {
   resize: vertical;
   min-height: 180px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.85rem;
-  line-height: 1.55;
+  font-family: var(--font-primary);
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
 
 /* ─── Checkbox ──────────────────────────────────────────────────────── */
