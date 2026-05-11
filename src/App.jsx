@@ -745,10 +745,10 @@ function detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo) {
 // ─── Scoring ─────────────────────────────────────────────────────────────────
 
 function calcularNivel(puntuacion) {
-  if (puntuacion <= 25) return { nivel: 'SEGURO',      color: '#22c55e' }
-  if (puntuacion <= 50) return { nivel: 'PRECAUCIÓN',  color: '#f59e0b' }
-  if (puntuacion <= 75) return { nivel: 'ALTO RIESGO', color: '#f97316' }
-  return                       { nivel: 'CRÍTICO',     color: '#ef4444' }
+  if (puntuacion <= 25) return { nivel: 'SEGURO',      color: '#C0D22E' }  /* Verde Lima  */
+  if (puntuacion <= 50) return { nivel: 'PRECAUCIÓN',  color: '#F9B036' }  /* Amarillo    */
+  if (puntuacion <= 75) return { nivel: 'ALTO RIESGO', color: '#664882' }  /* Púrpura     */
+  return                       { nivel: 'CRÍTICO',     color: '#ef4444' }  /* Rojo        */
 }
 
 function generarRecomendaciones(nivel, senales) {

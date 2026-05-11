@@ -116,8 +116,12 @@
 }
 
 .panel-title .material-icons {
-  color: var(--color-accent);
+  color: var(--color-primary);   /* Verde Lima — panel formulario */
   font-size: 20px;
+}
+
+.panel-results .panel-title .material-icons {
+  color: var(--color-accent);    /* Verde Teal — panel resultados */
 }
 
 .panel-desc {
@@ -473,6 +477,15 @@ textarea {
   50%       { box-shadow: 0 0 16px 4px rgba(239, 68, 68, 0.35); }
 }
 
+.nivel-alto-riesgo {
+  animation: pulse-alto-riesgo 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse-alto-riesgo {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(102, 72, 130, 0); }
+  50%       { box-shadow: 0 0 14px 4px rgba(102, 72, 130, 0.4); }
+}
+
 /* ─── Section Title ─────────────────────────────────────────────────── */
 
 .section-title {
@@ -489,15 +502,31 @@ textarea {
 
 .section-title .material-icons {
   font-size: 18px;
+  color: var(--color-accent);   /* Teal por defecto */
+}
+
+/* Señales detectadas → Verde Lima */
+.signals-section .section-title .material-icons {
+  color: var(--color-primary);
+}
+
+/* Qué hacer / recomendaciones → Verde Teal */
+.recs-section .section-title .material-icons {
   color: var(--color-accent);
+}
+
+/* Secciones VirusTotal → Amarillo (contexto de alerta) */
+.vt-section .section-title .material-icons {
+  color: var(--color-accent-yellow);
 }
 
 .signals-count {
   margin-left: auto;
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral);
   background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
   padding: 2px 8px;
   border-radius: var(--r-full);
   letter-spacing: 0.04em;
