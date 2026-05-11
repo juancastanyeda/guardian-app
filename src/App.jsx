@@ -34,17 +34,45 @@ function detectarRemitenteSospechoso(remitente) {
   if (!domainMatch) return null
   const domain = domainMatch[1]
 
+  // ── 0. Detectar nombre en inglés PRIMERO (mayor peso en contexto hispanohablante) ──
+  const displayNameMatch = remitente.match(/^(.+?)\s*</)
+  const rawDisplay = displayNameMatch ? displayNameMatch[1].trim() : ''
+  const displayName = norm(rawDisplay)
+
+  const englishRoleWords = [
+    'support', 'helpdesk', 'help desk', 'department', 'billing',
+    'customer service', 'customer support', 'technical support',
+    'it support', 'it department', 'it team', 'security team',
+    'account recovery', 'account team', 'notification service',
+    'help center', 'service desk', ' team',
+  ]
+  if (rawDisplay) {
+    const foundEnglish = englishRoleWords.find(kw => displayName.includes(norm(kw)))
+    if (foundEnglish) {
+      return {
+        id: 'remitente_ingles',
+        nombre: 'Remitente en idioma extranjero',
+        icono: 'translate',
+        descripcion: `El nombre del remitente ("${rawDisplay}") está en inglés. Las comunicaciones corporativas en Colombia se redactan en español; usar inglés es una técnica habitual en campañas de phishing masivo.`,
+        peso: 20,
+        severidad: 'alta',
+      }
+    }
+  }
+
+  // ── 1. Dominio gratuito — peso reducido si el nombre es en español ─────────────
   if (freeDomains.includes(domain)) {
     return {
       id: 'remitente_sospechoso',
       nombre: 'Remitente sospechoso',
       icono: 'alternate_email',
       descripcion: `El correo proviene de un dominio de correo gratuito (${domain}), inusual para comunicaciones corporativas oficiales.`,
-      peso: 20,
-      severidad: 'alta',
+      peso: 12,
+      severidad: 'media',
     }
   }
 
+  // ── 2. TLD sospechoso — peso reducido si el nombre es en español ──────────────
   const hasSuspiciousTld = suspiciousTlds.some(tld => domain.endsWith(tld))
   if (hasSuspiciousTld) {
     return {
@@ -52,11 +80,12 @@ function detectarRemitenteSospechoso(remitente) {
       nombre: 'Remitente sospechoso',
       icono: 'alternate_email',
       descripcion: `El dominio del remitente (${domain}) usa una extensión poco confiable frecuentemente asociada a phishing.`,
-      peso: 20,
-      severidad: 'alta',
+      peso: 12,
+      severidad: 'media',
     }
   }
 
+  // ── 3. Suplantación de marca en el dominio (siempre alto) ─────────────────────
   for (const brand of brands) {
     if (domain.includes(brand) && domain !== `${brand}.com` && domain !== `${brand}.es` && domain !== `${brand}.net`) {
       return {
@@ -70,9 +99,8 @@ function detectarRemitenteSospechoso(remitente) {
     }
   }
 
-  const displayNameMatch = remitente.match(/^(.+?)\s*</)
   if (displayNameMatch) {
-    const displayName = norm(displayNameMatch[1])
+    // ── 4. Marca en el nombre pero no en el dominio (siempre alto) ───────────────
     for (const brand of brands) {
       if (displayName.includes(brand) && !domain.includes(brand)) {
         return {
@@ -86,20 +114,19 @@ function detectarRemitenteSospechoso(remitente) {
       }
     }
 
-    // Nombre de pantalla contiene números (ej. "Planillas 472") — inusual para entidad oficial
-    const rawDisplay = displayNameMatch[1].trim()
+    // ── 5. Números en el nombre (peso reducido) ───────────────────────────────────
     if (/\d/.test(rawDisplay)) {
       return {
         id: 'remitente_sospechoso',
         nombre: 'Remitente sospechoso',
         icono: 'alternate_email',
         descripcion: `El nombre del remitente ("${rawDisplay}") contiene números, lo cual es inusual para una entidad oficial o corporativa. Puede ser un sistema de envío masivo disfrazado.`,
-        peso: 20,
-        severidad: 'alta',
+        peso: 12,
+        severidad: 'media',
       }
     }
 
-    // Nombre reclama ser entidad gubernamental/judicial pero dominio es comercial
+    // ── 6. Entidad gubernamental reclamada desde dominio comercial (siempre alto) ─
     const govTerms = ['juzgado','tribunal','fiscalia','ministerio','alcaldia','gobernacion',
                       'dian','ugpp','notaria','rama judicial','corte','judicatura','colpensiones',
                       'supersociedades','superintendencia','procuraduria','contraloria']
@@ -113,26 +140,6 @@ function detectarRemitenteSospechoso(remitente) {
         descripcion: `El nombre dice ser "${govClaim.toUpperCase()}" pero el correo llega desde "${domain}", un dominio comercial. Las entidades estatales colombianas usan dominios .gov.co.`,
         peso: 20,
         severidad: 'alta',
-      }
-    }
-
-    // Nombre del remitente en inglés — señal de phishing en contexto hispanohablante
-    const englishRoleWords = [
-      'support', 'helpdesk', 'help desk', 'department', 'billing',
-      'customer service', 'customer support', 'technical support',
-      'it support', 'it department', 'it team', 'security team',
-      'account recovery', 'account team', 'notification service',
-      'help center', 'service desk', ' team',
-    ]
-    const foundEnglish = englishRoleWords.find(kw => displayName.includes(norm(kw)))
-    if (foundEnglish) {
-      return {
-        id: 'remitente_ingles',
-        nombre: 'Remitente en idioma extranjero',
-        icono: 'translate',
-        descripcion: `El nombre del remitente ("${rawDisplay}") está en inglés. Las comunicaciones corporativas en Colombia se redactan en español; usar inglés es una técnica habitual en campañas de phishing masivo.`,
-        peso: 15,
-        severidad: 'media',
       }
     }
   }
