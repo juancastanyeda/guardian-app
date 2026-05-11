@@ -966,8 +966,9 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
     rawScore = 0
   }
 
-  // Sin confirmación VT el máximo es ALTO RIESGO (75). CRÍTICO (99) lo decide VirusTotal.
-  const puntuacion = Math.min(rawScore, 75)
+  // Sin confirmación VT el máximo es PRECAUCIÓN (50).
+  // ALTO RIESGO y CRÍTICO solo los desbloquea VirusTotal.
+  const puntuacion = Math.min(rawScore, 50)
   const { nivel, color: nivelColor, textColor: nivelTextColor, scoreColor: nivelScoreColor } = calcularNivel(puntuacion)
   const recomendaciones = generarRecomendaciones(nivel, senalesDetectadas)
 
@@ -1331,14 +1332,18 @@ export default function App() {
     }, 650)
   }
 
-  // ── Escalar a CRÍTICO si VirusTotal confirma compromiso ─────────────────────
-  // Se dispara cuando llegan los resultados de VT (URL o archivo).
-  // Umbral: ≥ 2 motores marcan como malicioso = certeza de compromiso.
+  // ── Escalar nivel según confirmación VirusTotal ──────────────────────────────
+  // Sin VT el máximo es PRECAUCIÓN (50). VT desbloquea los niveles superiores:
+  //   • 1 motor  malicioso → ALTO RIESGO (65) — sospechoso pero no confirmado
+  //   • ≥2 motores maliciosos → CRÍTICO  (99) — compromiso confirmado
   useEffect(() => {
     if (!resultado) return
-    const malURL  = urlResultado  && !urlResultado.error  && (urlResultado.stats?.malicious  || 0) >= 2
-    const malFile = archivoResultado && !archivoResultado.error && (archivoResultado.stats?.malicious || 0) >= 2
-    if (malURL || malFile) {
+    const countURL  = urlResultado  && !urlResultado.error  ? (urlResultado.stats?.malicious  || 0) : 0
+    const countFile = archivoResultado && !archivoResultado.error ? (archivoResultado.stats?.malicious || 0) : 0
+    const maxMalicious = Math.max(countURL, countFile)
+
+    if (maxMalicious >= 2) {
+      // ≥2 motores → CRÍTICO confirmado
       const critico = calcularNivel(99)
       setResultado(prev =>
         prev && prev.puntuacion < 99
@@ -1346,6 +1351,14 @@ export default function App() {
               nivelTextColor: critico.textColor, nivelScoreColor: critico.scoreColor }
           : prev
       )
+    } else if (maxMalicious === 1) {
+      // 1 motor → ALTO RIESGO (sospechoso, no confirmado definitivamente)
+      const altoRiesgo = calcularNivel(65)
+      setResultado(prev => {
+        if (!prev || prev.puntuacion >= 65) return prev   // ya está en ALTO RIESGO o CRÍTICO
+        return { ...prev, puntuacion: 65, nivel: altoRiesgo.nivel, nivelColor: altoRiesgo.color,
+                 nivelTextColor: altoRiesgo.textColor, nivelScoreColor: altoRiesgo.scoreColor }
+      })
     }
   }, [urlResultado, archivoResultado]) // eslint-disable-line react-hooks/exhaustive-deps
 
