@@ -115,6 +115,26 @@ function detectarRemitenteSospechoso(remitente) {
         severidad: 'alta',
       }
     }
+
+    // Nombre del remitente en inglés — señal de phishing en contexto hispanohablante
+    const englishRoleWords = [
+      'support', 'helpdesk', 'help desk', 'department', 'billing',
+      'customer service', 'customer support', 'technical support',
+      'it support', 'it department', 'it team', 'security team',
+      'account recovery', 'account team', 'notification service',
+      'help center', 'service desk', ' team',
+    ]
+    const foundEnglish = englishRoleWords.find(kw => displayName.includes(norm(kw)))
+    if (foundEnglish) {
+      return {
+        id: 'remitente_ingles',
+        nombre: 'Remitente en idioma extranjero',
+        icono: 'translate',
+        descripcion: `El nombre del remitente ("${rawDisplay}") está en inglés. Las comunicaciones corporativas en Colombia se redactan en español; usar inglés es una técnica habitual en campañas de phishing masivo.`,
+        peso: 15,
+        severidad: 'media',
+      }
+    }
   }
 
   return null
@@ -533,7 +553,9 @@ const BRAND_MAP = {
   netflix:    ['netflix'],
   spotify:    ['spotify'],
   dropbox:    ['dropbox'],
-  facebook:   ['facebook', 'meta', 'instagram', 'whatsapp'],
+  facebook:   ['facebook'],
+  instagram:  ['instagram'],
+  whatsapp:   ['whatsapp'],
   banco:      ['banco', 'bancario', 'cuenta bancaria', 'transferencia bancaria', 'banca en linea'],
   bbva:       ['bbva', 'bancomer'],
   santander:  ['santander', 'openbank'],
