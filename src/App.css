@@ -26,15 +26,35 @@
   color: var(--color-accent);
 }
 
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.2;
+}
+
 .header-title {
   font-size: 1.35rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
+  letter-spacing: 0.02em;
+}
+
+.header-by {
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
   letter-spacing: 0.04em;
+}
+
+.header-by strong {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
 }
 
 .header-subtitle {
   font-size: 0.78rem;
+  font-weight: var(--font-weight-light);
   color: var(--color-text-muted);
   letter-spacing: 0.02em;
 }
@@ -422,7 +442,7 @@ textarea {
 
 .score-number {
   font-size: 3rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-bold);
   line-height: 1;
   transition: color 0.3s;
 }
@@ -439,7 +459,7 @@ textarea {
   border-radius: var(--r-full);
   border: 1.5px solid;
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1087,7 +1107,7 @@ textarea {
 }
 
 .vt-ratio {
-  font-weight: 900;
+  font-weight: var(--font-weight-bold);
   line-height: 1;
   white-space: nowrap;
 }

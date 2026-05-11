@@ -1,38 +1,51 @@
 /* ─── CSS Variables ────────────────────────────────────────────────── */
 :root {
-  /* Brand */
-  --color-accent:         #14b8a6;
-  --color-accent-dim:     #0d9488;
-  --color-accent-glow:    rgba(20, 184, 166, 0.18);
+  /* ── Haceb Brand Palette ── */
+  --color-primary:        #C0D22E;   /* Verde Lima   */
+  --color-secondary:      #00AB8F;   /* Verde Teal   */
+  --color-neutral:        #6D6E71;   /* Gris         */
+  --color-accent-yellow:  #F9B036;   /* Amarillo     */
+  --color-accent-purple:  #664882;   /* Púrpura      */
 
-  /* Backgrounds */
-  --color-bg:             #080d16;
-  --color-surface:        #0f1623;
-  --color-surface-2:      #172032;
-  --color-surface-3:      #1e2a3e;
-  --color-border:         #1e3354;
-  --color-border-focus:   #14b8a6;
+  /* ── Accent (mapped to Verde Teal) ── */
+  --color-accent:         #00AB8F;
+  --color-accent-dim:     #008f77;
+  --color-accent-glow:    rgba(0, 171, 143, 0.18);
 
-  /* Text */
-  --color-text-primary:   #f0f4f8;
-  --color-text-secondary: #8fa3bf;
-  --color-text-muted:     #4a6080;
+  /* ── Backgrounds (dark UI) ── */
+  --color-bg:             #070d12;
+  --color-surface:        #0d1a1a;
+  --color-surface-2:      #122020;
+  --color-surface-3:      #182828;
+  --color-border:         #1a3030;
+  --color-border-focus:   #00AB8F;
 
-  /* Risk levels */
-  --color-seguro:         #22c55e;
-  --color-precaucion:     #f59e0b;
+  /* ── Text ── */
+  --color-text-primary:   #f0f4f2;
+  --color-text-secondary: #8aaaa0;
+  --color-text-muted:     #466060;
+
+  /* ── Risk levels ── */
+  --color-seguro:         #C0D22E;   /* Verde Lima Haceb */
+  --color-precaucion:     #F9B036;   /* Amarillo Haceb   */
   --color-alto-riesgo:    #f97316;
   --color-critico:        #ef4444;
 
-  /* Signal severity */
-  --color-sev-baja:       #3b82f6;
-  --color-sev-media:      #f59e0b;
+  /* ── Signal severity ── */
+  --color-sev-baja:       #00AB8F;
+  --color-sev-media:      #F9B036;
   --color-sev-alta:       #ef4444;
 
-  /* Typography */
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  /* ── Typography ── */
+  --font:                 'Poppins', sans-serif;
+  --font-primary:         'Poppins', sans-serif;
+  --font-secondary:       'Asap', sans-serif;
+  --font-weight-light:    300;
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-bold:     700;
 
-  /* Spacing */
+  /* ── Spacing ── */
   --sp-1: 0.25rem;
   --sp-2: 0.5rem;
   --sp-3: 0.75rem;
@@ -42,15 +55,15 @@
   --sp-8: 2rem;
   --sp-10: 2.5rem;
 
-  /* Radii */
+  /* ── Radii ── */
   --r-sm:   6px;
   --r-md:   12px;
   --r-lg:   18px;
   --r-full: 9999px;
 
-  /* Shadows */
+  /* ── Shadows ── */
   --shadow-panel: 0 4px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow:  0 0 24px rgba(20, 184, 166, 0.22);
+  --shadow-glow:  0 0 24px rgba(0, 171, 143, 0.22);
 }
 
 /* ─── Global Reset ────────────────────────────────────────────────── */
@@ -67,7 +80,8 @@ html {
 }
 
 body {
-  font-family: var(--font);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-regular);
   background: var(--color-bg);
   color: var(--color-text-primary);
   line-height: 1.6;

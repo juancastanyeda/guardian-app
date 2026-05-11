@@ -1310,7 +1310,10 @@ export default function App() {
       <header className="app-header">
         <div className="header-brand">
           <DobermanMascot className="dober-header" />
-          <span className="header-title">Guardian</span>
+          <div className="header-titles">
+            <span className="header-title">Guardian</span>
+            <span className="header-by">by <strong>Haceb</strong></span>
+          </div>
         </div>
         <p className="header-subtitle">Analizador de correos sospechosos · Herramienta interna</p>
       </header>
