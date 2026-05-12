@@ -1327,6 +1327,8 @@ export default function App() {
     setArchivo(null)
     setArchivoResultado(null)
     setArchivoAnalizando(false)
+    urlResultadoRef.current = null
+    archivoResultadoRef.current = null
     if (fileInputRef.current) fileInputRef.current.value = ''
     setFormError('')
     setResultado(null)
@@ -1345,6 +1347,8 @@ export default function App() {
     setAnimarGauge(false)
     setUrlResultado(null)
     setArchivoResultado(null)
+    urlResultadoRef.current = null       // resetear refs para no contaminar el nuevo análisis
+    archivoResultadoRef.current = null
 
     // Análisis de URL con VirusTotal (corre en paralelo si hay URL)
     if (urlSospechosa.trim()) {
