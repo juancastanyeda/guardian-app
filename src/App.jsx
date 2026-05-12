@@ -1378,20 +1378,11 @@ export default function App() {
     const countFile = archivoResultado && !archivoResultado.error ? (archivoResultado.stats?.malicious || 0) : 0
     const maxMalicious = Math.max(countURL, countFile)
 
-    if (maxMalicious >= 2) {
-      // ≥2 motores → CRÍTICO confirmado
-      const critico = calcularNivel(99)
-      setResultado(prev =>
-        prev && prev.puntuacion < 99
-          ? { ...prev, puntuacion: 99, nivel: critico.nivel, nivelColor: critico.color,
-              nivelTextColor: critico.textColor, nivelScoreColor: critico.scoreColor }
-          : prev
-      )
-    } else if (maxMalicious === 1) {
-      // 1 motor → ALTO RIESGO (sospechoso, no confirmado definitivamente)
+    if (maxMalicious > 1) {
+      // >1 motor → ALTO RIESGO
       const altoRiesgo = calcularNivel(65)
       setResultado(prev => {
-        if (!prev || prev.puntuacion >= 65) return prev   // ya está en ALTO RIESGO o CRÍTICO
+        if (!prev || prev.puntuacion >= 65) return prev
         return { ...prev, puntuacion: 65, nivel: altoRiesgo.nivel, nivelColor: altoRiesgo.color,
                  nivelTextColor: altoRiesgo.textColor, nivelScoreColor: altoRiesgo.scoreColor }
       })
