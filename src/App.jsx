@@ -1368,10 +1368,9 @@ export default function App() {
     }, 650)
   }
 
-  // ── Escalar nivel según confirmación VirusTotal ──────────────────────────────
-  // Sin VT el máximo es PRECAUCIÓN (50). VT desbloquea los niveles superiores:
-  //   • 1 motor  malicioso → ALTO RIESGO (65) — sospechoso pero no confirmado
-  //   • ≥2 motores maliciosos → CRÍTICO  (99) — compromiso confirmado
+  // ── Escalar a ALTO RIESGO cuando VT confirma >1 motor malicioso ─────────────
+  // Depende también de `resultado` para cubrir el caso en que VT responde
+  // antes de que el análisis del correo termine (race condition del setTimeout).
   useEffect(() => {
     if (!resultado) return
     const countURL  = urlResultado  && !urlResultado.error  ? (urlResultado.stats?.malicious  || 0) : 0
@@ -1379,15 +1378,14 @@ export default function App() {
     const maxMalicious = Math.max(countURL, countFile)
 
     if (maxMalicious > 1) {
-      // >1 motor → ALTO RIESGO
       const altoRiesgo = calcularNivel(65)
       setResultado(prev => {
-        if (!prev || prev.puntuacion >= 65) return prev
+        if (!prev || prev.puntuacion >= 65) return prev   // guardia anti-loop
         return { ...prev, puntuacion: 65, nivel: altoRiesgo.nivel, nivelColor: altoRiesgo.color,
                  nivelTextColor: altoRiesgo.textColor, nivelScoreColor: altoRiesgo.scoreColor }
       })
     }
-  }, [urlResultado, archivoResultado]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [urlResultado, archivoResultado, resultado]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const nivelSlug = resultado
     ? resultado.nivel === 'CRÍTICO' ? 'critico'
