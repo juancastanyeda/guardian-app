@@ -1262,6 +1262,9 @@ export default function App() {
   const [formError, setFormError] = useState('')
   const resultsRef = useRef(null)
   const fileInputRef = useRef(null)
+  // Refs para leer el estado VT más reciente desde dentro del setTimeout
+  const urlResultadoRef    = useRef(null)
+  const archivoResultadoRef = useRef(null)
 
   async function analizarArchivo(file) {
     setArchivoAnalizando(true)
@@ -1279,7 +1282,9 @@ export default function App() {
         body: JSON.stringify({ filename: file.name, data: base64 }),
       })
       if (!res.ok) throw new Error(`Error del servidor (${res.status})`)
-      setArchivoResultado(await res.json())
+      const data = await res.json()
+      archivoResultadoRef.current = data        // actualizar ref inmediatamente
+      setArchivoResultado(data)
     } catch (err) {
       setArchivoResultado({ error: err.message })
     } finally {
@@ -1345,6 +1350,7 @@ export default function App() {
     if (urlSospechosa.trim()) {
       setUrlAnalizando(true)
       analizarURL(urlSospechosa.trim()).then(res => {
+        urlResultadoRef.current = res          // actualizar ref inmediatamente
         setUrlResultado(res)
         setUrlAnalizando(false)
       })
@@ -1357,7 +1363,21 @@ export default function App() {
 
     setTimeout(() => {
       const res = analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto: false })
-      setResultado(res)
+
+      // Leer VT desde refs (acceden al valor más reciente, no a la closure inicial)
+      const vtUrl  = urlResultadoRef.current
+      const vtFile = archivoResultadoRef.current
+      const vtCount   = vtUrl  && !vtUrl.error  ? (vtUrl.stats?.malicious  || 0) : 0
+      const fileCount = vtFile && !vtFile.error ? (vtFile.stats?.malicious || 0) : 0
+
+      if (Math.max(vtCount, fileCount) > 1) {
+        const alto = calcularNivel(65)
+        setResultado({ ...res, puntuacion: 65, nivel: alto.nivel,
+                       nivelColor: alto.color, nivelTextColor: alto.textColor,
+                       nivelScoreColor: alto.scoreColor })
+      } else {
+        setResultado(res)
+      }
       setAnalizando(false)
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setAnimarGauge(true))
@@ -1369,23 +1389,22 @@ export default function App() {
   }
 
   // ── Escalar a ALTO RIESGO cuando VT confirma >1 motor malicioso ─────────────
-  // Depende también de `resultado` para cubrir el caso en que VT responde
-  // antes de que el análisis del correo termine (race condition del setTimeout).
+  // Solo cubre el caso en que VT responde DESPUÉS del setTimeout (>650 ms).
+  // El caso VT-primero queda resuelto leyendo los refs dentro del setTimeout.
   useEffect(() => {
     if (!resultado) return
     const countURL  = urlResultado  && !urlResultado.error  ? (urlResultado.stats?.malicious  || 0) : 0
     const countFile = archivoResultado && !archivoResultado.error ? (archivoResultado.stats?.malicious || 0) : 0
-    const maxMalicious = Math.max(countURL, countFile)
 
-    if (maxMalicious > 1) {
-      const altoRiesgo = calcularNivel(65)
+    if (Math.max(countURL, countFile) > 1) {
+      const alto = calcularNivel(65)
       setResultado(prev => {
-        if (!prev || prev.puntuacion >= 65) return prev   // guardia anti-loop
-        return { ...prev, puntuacion: 65, nivel: altoRiesgo.nivel, nivelColor: altoRiesgo.color,
-                 nivelTextColor: altoRiesgo.textColor, nivelScoreColor: altoRiesgo.scoreColor }
+        if (!prev || prev.puntuacion >= 65) return prev
+        return { ...prev, puntuacion: 65, nivel: alto.nivel, nivelColor: alto.color,
+                 nivelTextColor: alto.textColor, nivelScoreColor: alto.scoreColor }
       })
     }
-  }, [urlResultado, archivoResultado, resultado]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [urlResultado, archivoResultado]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const nivelSlug = resultado
     ? resultado.nivel === 'CRÍTICO' ? 'critico'
