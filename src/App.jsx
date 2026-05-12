@@ -1371,10 +1371,10 @@ export default function App() {
       const fileCount = vtFile && !vtFile.error ? (vtFile.stats?.malicious || 0) : 0
 
       if (Math.max(vtCount, fileCount) > 1) {
-        const alto = calcularNivel(65)
-        setResultado({ ...res, puntuacion: 65, nivel: alto.nivel,
-                       nivelColor: alto.color, nivelTextColor: alto.textColor,
-                       nivelScoreColor: alto.scoreColor })
+        const critico = calcularNivel(99)
+        setResultado({ ...res, puntuacion: 99, nivel: critico.nivel,
+                       nivelColor: critico.color, nivelTextColor: critico.textColor,
+                       nivelScoreColor: critico.scoreColor })
       } else {
         setResultado(res)
       }
@@ -1397,11 +1397,11 @@ export default function App() {
     const countFile = archivoResultado && !archivoResultado.error ? (archivoResultado.stats?.malicious || 0) : 0
 
     if (Math.max(countURL, countFile) > 1) {
-      const alto = calcularNivel(65)
+      const critico = calcularNivel(99)
       setResultado(prev => {
-        if (!prev || prev.puntuacion >= 65) return prev
-        return { ...prev, puntuacion: 65, nivel: alto.nivel, nivelColor: alto.color,
-                 nivelTextColor: alto.textColor, nivelScoreColor: alto.scoreColor }
+        if (!prev || prev.puntuacion >= 99) return prev
+        return { ...prev, puntuacion: 99, nivel: critico.nivel, nivelColor: critico.color,
+                 nivelTextColor: critico.textColor, nivelScoreColor: critico.scoreColor }
       })
     }
   }, [urlResultado, archivoResultado]) // eslint-disable-line react-hooks/exhaustive-deps
