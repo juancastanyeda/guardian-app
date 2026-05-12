@@ -1370,7 +1370,7 @@ export default function App() {
       const vtCount   = vtUrl  && !vtUrl.error  ? (vtUrl.stats?.malicious  || 0) : 0
       const fileCount = vtFile && !vtFile.error ? (vtFile.stats?.malicious || 0) : 0
 
-      if (Math.max(vtCount, fileCount) > 1) {
+      if (Math.max(vtCount, fileCount) >= 1) {
         const critico = calcularNivel(99)
         setResultado({ ...res, puntuacion: 99, nivel: critico.nivel,
                        nivelColor: critico.color, nivelTextColor: critico.textColor,
@@ -1396,7 +1396,7 @@ export default function App() {
     const countURL  = urlResultado  && !urlResultado.error  ? (urlResultado.stats?.malicious  || 0) : 0
     const countFile = archivoResultado && !archivoResultado.error ? (archivoResultado.stats?.malicious || 0) : 0
 
-    if (Math.max(countURL, countFile) > 1) {
+    if (Math.max(countURL, countFile) >= 1) {
       const critico = calcularNivel(99)
       setResultado(prev => {
         if (!prev || prev.puntuacion >= 99) return prev
