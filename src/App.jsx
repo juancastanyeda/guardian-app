@@ -1014,9 +1014,9 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
 // ─── Example ─────────────────────────────────────────────────────────────────
 
 const EJEMPLO = {
-  remitente: 'Microsoft Planner <noreply@bankmenia.fr>',
+  remitente: 'noreply@bankmenia.fr',
   asunto: 'Notificación del planificador',
-  url: 'https://bankmenia.fr',
+  url: 'https://www.bankmenia.fr/nam/5368fc5a-2692-4a6a-b226-e2802e94e22b/def3886a-b6ff-47eb-8c98-e111cc223021/4aa7d651-04b3-490a-8826-1969a00bf13e/landing?id=WGFSU3VaNnZNRTZ5a3pRZmpHTEwzaGwweUJlSjB4MEtORWdZblpzamJMbnRVVnRiS2pSRmJkNURWaWlBejU0T3lhWGtpRkdSNHhaYnpRQnNyenJoblNyUlpBNElkQ1l4cmhpbGJtWHBnTktTd1ZEYzI4Z0NmdmMrSnR3UE03VWFQMkI5V1NNWlM0OGtuV2hLclMwSXdQY3ZtWFFhdTNMTXdHeWd6bjNIOUEwMzlWWjRnSU1JajlSc0t3SmNCZDNOcnUzQ25jdkl0dEZYRWY3N3VDRjZLd1lodUVrenhrUzFJdjk5Q0lSb1FZSWJQWlMyYU9JSmlBZ3JENzdWL1JEYldTeXJ4d1NaR2x0QXh0NGo0NW1ybUx6Q3o2Z3owWGZsOFpadXJRK1c0MGIvbFQwNHdhRnhIb2V0dFpnSHV3dEM4VE5FbERhcFdyN2VsUEtiRnl1WmhZK2tST1BzRWFPMmRmUHFJZ0xrWTNKclZ2czB2QVc0ZENMNis0ZWFVZkY1MTFWUHpaa0JaRWprczFkMFRtalR0ZjFaVGZ5b0VQbVF1Y0YzVEZIOE1BVT0',
   cuerpo: `Hola,
 
 Te han agregado a un equipo.
