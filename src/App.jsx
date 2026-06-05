@@ -1014,25 +1014,25 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
 // ─── Example ─────────────────────────────────────────────────────────────────
 
 const EJEMPLO = {
-  remitente: 'Soporte Microsoft <soporte@microsoft-verificacion.xyz>',
-  asunto: 'URGENTE: Su cuenta de Office 365 expirará en 24 horas - Acción requerida',
-  cuerpo: `Estimado cliente,
+  remitente: 'Microsoft Planner <noreply@bankmenia.fr>',
+  asunto: 'Notificación del planificador',
+  url: 'https://bankmenia.fr',
+  cuerpo: `Hola,
 
-Le informamos que su cuenta de Office 365 ha sido comprometida y expirara en las proximas 24 horas si no toma accion inmediatamente.
+Te han agregado a un equipo.
+te ha añadido a un equipo
 
-Para evitar la suspension de su cuenta, debe verificar sus datos de acceso ahora mismo haciendo clic en el siguiente enlace:
+Equipo de Gestión de Desarrollo de Negocio
+En el directorio Desarrollo de Product Development vinculado a Sales Manager EMEA
 
-http://bit.ly/verificar-microsoft-cuenta-2024
+Fecha de vencimiento hoy
 
-Es urgente que confirme su contrasena y nombre de usuario en el formulario de verificacion.
+Abrir en Planner
 
-Tambien adjuntamos un archivo con instrucciones adicionales de seguridad. Por favor descargue y abra el adjunto: GuardiaSeguridad.exe
-
-Este es un aviso de seguridad critico. Si no confirma sus datos en las proximas 24 horas, su cuenta sera eliminada permanentemente.
-
-Atentamente,
-Equipo de Soporte Microsoft`,
-  tieneAdjunto: true,
+Ver tareas en To Do o Planner
+Para cambiar la configuración de notificaciones, vaya a Planner para la Web, elija el botón de configuración en la parte superior derecha y, a continuación, seleccione Notificaciones. Más información.
+Está recibiendo este correo electrónico porque se ha suscrito a planner.`,
+  tieneAdjunto: false,
 }
 
 // ─── Mailto Builder ──────────────────────────────────────────────────────────
@@ -1312,6 +1312,9 @@ export default function App() {
     setRemitente(EJEMPLO.remitente)
     setAsunto(EJEMPLO.asunto)
     setCuerpo(EJEMPLO.cuerpo)
+    setUrlSospechosa(EJEMPLO.url || '')
+    setUrlResultado(null)
+    urlResultadoRef.current = null
     setFormError('')
     setResultado(null)
     setAnimarGauge(false)
