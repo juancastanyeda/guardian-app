@@ -1825,7 +1825,7 @@ export default function App() {
                   <span className="signals-count">{resultado.senalesDetectadas.length} / 9</span>
                 </h3>
 
-                {resultado.senalesDetectadas.length === 0 ? (
+                {resultado.senalesDetectadas.length === 0 && !((urlResultado && !urlResultado.error && (urlResultado.stats?.malicious || 0) >= 1) || (archivoResultado && !archivoResultado.error && (archivoResultado.stats?.malicious || 0) >= 1)) ? (
                   <div className="no-signals">
                     <span className="material-icons">check_circle</span>
                     No se encontraron señales de riesgo.
