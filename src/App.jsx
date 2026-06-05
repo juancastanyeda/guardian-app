@@ -193,7 +193,8 @@ function detectarUrgencia(asunto, cuerpo) {
     'urgente', 'urgentemente', 'inmediatamente', 'ahora mismo', 'de inmediato',
     'expira', 'expirara', 'caduca', 'caducara', 'ultima oportunidad',
     'actue ya', 'actue ahora', 'importante', 'accion requerida',
-    'responda hoy', 'vence hoy', 'vence en', 'plazo', 'limite de tiempo',
+    'responda hoy', 'vence hoy', 'vence en', 'vencimiento hoy', 'fecha de vencimiento',
+    'fecha limite', 'plazo hoy', 'plazo', 'limite de tiempo',
     'tiempo limitado', '24 horas', '48 horas', 'horas para', 'ultimo aviso',
     'su cuenta sera', 'su acceso sera bloqueado', 'suspendida', 'eliminada',
     'bloqueada', 'verificacion inmediata', 'responder de inmediato',
@@ -520,6 +521,7 @@ function detectarSuplantacion(remitente, asunto, cuerpo) {
     'microsoft', 'windows', 'office 365', 'azure', 'google', 'gmail',
     'apple', 'icloud', 'paypal', 'amazon', 'netflix', 'spotify', 'dropbox',
     'adobe', 'adobe acrobat', 'adobe reader', 'acrobat reader', 'acrobat',
+    'microsoft planner', 'planner', 'microsoft teams', 'sharepoint', 'microsoft to do', 'to do',
     'banco', 'bbva', 'santander', 'banamex', 'bancomer', 'hsbc', 'citibank',
     'scotiabank', 'banorte', 'inbursa', 'facebook', 'instagram', 'whatsapp',
     // Entidades judiciales y gubernamentales (Colombia y región)
@@ -715,6 +717,29 @@ function detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo) {
       desc: `El nombre del remitente indica "${senderBrand}" pero el contenido habla de "${bodyBrand}". Son entidades distintas.`,
       priority: 5,
     })
+
+  // 1b. Sender has no identifiable brand but body impersonates a known tech brand
+  const knownTechBrands = ['microsoft', 'google', 'apple', 'amazon', 'adobe', 'dropbox', 'netflix', 'paypal', 'bbva', 'santander']
+  if (!senderBrand && bodyBrand && knownTechBrands.includes(bodyBrand) && maxHits >= 1) {
+    const brandDomainHints = {
+      microsoft: ['microsoft', 'office', 'msn', 'live', 'outlook', 'azure'],
+      google:    ['google', 'gmail', 'googleapis'],
+      apple:     ['apple', 'icloud'],
+      amazon:    ['amazon', 'aws'],
+      adobe:     ['adobe'],
+      dropbox:   ['dropbox'],
+      netflix:   ['netflix'],
+      paypal:    ['paypal'],
+      bbva:      ['bbva'],
+      santander: ['santander'],
+    }
+    const hints = brandDomainHints[bodyBrand] || [bodyBrand]
+    if (!hints.some(h => domain.includes(h)))
+      issues.push({
+        desc: `El correo llega desde "${domain}" pero el contenido simula ser de "${bodyBrand}". El dominio del remitente no tiene relación con esa empresa.`,
+        priority: 5,
+      })
+  }
 
   // 2. Free domain claiming a known brand
   if (freeDomains.includes(domain) && bodyBrand && maxHits >= 2)
@@ -922,6 +947,35 @@ function evaluarCoherenciaRemitente(remitente, asunto, cuerpo) {
   return { hayCoincidencia, esTldSospechoso, senderWords }
 }
 
+function detectarNotificacionFalsaSaaS(asunto, cuerpo) {
+  const platforms = [
+    'microsoft planner', 'planner', 'microsoft teams', 'teams', 'sharepoint',
+    'onedrive', 'office 365', 'microsoft 365', 'microsoft to do', 'to do',
+    'google drive', 'google docs', 'google workspace',
+    'dropbox', 'slack', 'zoom', 'webex', 'docusign', 'adobe sign',
+  ]
+  const actionPatterns = [
+    'abrir en', 'open in', 'ver en', 'view in',
+    'te han agregado', 'has been added', 'you have been added',
+    'te ha añadido', 'ha añadido', 'has added you', 'added to a team',
+    'unirse al equipo', 'join the team', 'join now',
+    'ver tareas', 'view tasks', 'open task', 'abrir tarea',
+    'revisar documento', 'review document',
+  ]
+  const text = norm(`${asunto} ${cuerpo}`)
+  const foundPlatform = platforms.find(p => text.includes(norm(p)))
+  const foundAction = actionPatterns.find(a => text.includes(norm(a)))
+  if (!foundPlatform || !foundAction) return null
+  return {
+    id: 'notificacion_falsa_saas',
+    nombre: 'Notificación falsa de plataforma corporativa',
+    icono: 'notifications_active',
+    descripcion: `El correo imita una notificación automática de "${foundPlatform}" ("${foundAction}"). Esta técnica engaña a empleados haciéndoles creer que el mensaje proviene de un sistema interno legítimo para robar credenciales.`,
+    peso: 20,
+    severidad: 'alta',
+  }
+}
+
 function detectarActualizacionFalsa(asunto, cuerpo) {
   const keywords = [
     'important update', 'critical update', 'security update', 'software update',
@@ -962,6 +1016,7 @@ function analizarEmail({ remitente, asunto, cuerpo, tieneAdjunto }) {
     detectarErroresRedaccion(cuerpo),
     detectarSuplantacion(remitente, asunto, cuerpo),
     detectarCorrelacionRemitenteContenido(remitente, asunto, cuerpo),
+    detectarNotificacionFalsaSaaS(asunto, cuerpo),
     detectarActualizacionFalsa(asunto, cuerpo),
   ]
 
