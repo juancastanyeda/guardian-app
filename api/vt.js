@@ -1,7 +1,5 @@
 const VT_API_KEY = '439792ab6453964b91dbe99f5cf4dff12ab412183cb2a8d6cc8dc30f484d0d18'
 
-export const config = { maxDuration: 25 }
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')

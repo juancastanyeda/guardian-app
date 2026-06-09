@@ -4,5 +4,13 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/vt.js": {
+      "maxDuration": 25
+    },
+    "api/vt-file.js": {
+      "maxDuration": 60
+    }
+  }
 }
